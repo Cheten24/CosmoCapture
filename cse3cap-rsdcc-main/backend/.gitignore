@@ -1,0 +1,25 @@
+# --- Python ---
+# Ignore the virtual environment folder
+venv/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+
+# --- Node.js / Frontend ---
+# Ignore frontend dependencies
+node_modules/
+
+# Ignore build output
+build/
+dist/
+
+# Ignore debug logs
+npm-debug.log*
+
+# --- IDE & OS ---
+# Ignore VS Code settings
+.vscode/
+
+# Environment variables
+.env

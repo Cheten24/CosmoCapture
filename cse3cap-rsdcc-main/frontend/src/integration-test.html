@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safety System Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0f172a;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            background-color: #1e293b;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .error {
+            background-color: #7f1d1d;
+            border: 1px solid #ef4444;
+        }
+        .warning {
+            background-color: #78350f;
+            border: 1px solid #f59e0b;
+        }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .active { background-color: #10b981; }
+        .unsafe { background-color: #ef4444; }
+        .closed { background-color: #f59e0b; }
+        .unknown { background-color: #6b7280; }
+    </style>
+</head>
+<body>
+    <h1>🔭 Telescope Safety System Integration Test</h1>
+    <p>This page tests the complete safety system workflow from backend API to frontend UI components.</p>
+
+    <div class="test-section">
+        <h2>1. Backend API Endpoints</h2>
+        <button onclick="testSafetyStatus()">Test Safety Status API</button>
+        <button onclick="testViewingWindow()">Test Viewing Window API</button>
+        <button onclick="testWeatherSafety()">Test Weather Safety API</button>
+        <div id="api-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Safety Status Display</h2>
+        <div id="safety-status-display">
+            <div class="test-result">
+                <span class="status-indicator unknown"></span>
+                <span>Status: Loading...</span>
+            </div>
+        </div>
+        <button onclick="refreshSafetyStatus()">Refresh Status</button>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Telescope Control Integration</h2>
+        <div id="telescope-controls">
+            <button onclick="testTelescopeConnect()">Test Connect (with Safety Check)</button>
+            <button onclick="testTelescopeSlew()">Test Slew (with Safety Check)</button>
+        </div>
+        <div id="telescope-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Real-time Updates</h2>
+        <div id="realtime-status">
+            <p>Real-time updates: <span id="update-status">Not started</span></p>
+            <p>Last update: <span id="last-update">Never</span></p>
+            <p>Update count: <span id="update-count">0</span></p>
+        </div>
+        <button onclick="startRealTimeUpdates()">Start Real-time Updates</button>
+        <button onclick="stopRealTimeUpdates()">Stop Updates</button>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Error Handling & Fallbacks</h2>
+        <button onclick="testErrorHandling()">Test API Error Handling</button>
+        <button onclick="testRetryMechanism()">Test Retry Mechanism</button>
+        <div id="error-results"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+        let updateInterval = null;
+        let updateCount = 0;
+
+        // Utility functions
+        function addResult(containerId, message, type = 'success') {
+            const container = document.getElementById(containerId);
+            const result = document.createElement('div');
+            result.className = `test-result ${type}`;
+            result.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            container.appendChild(result);
+        }
+
+        function getStatusIndicator(status) {
+            const classes = {
+                'ACTIVE': 'active',
+                'UNSAFE': 'unsafe', 
+                'CLOSED': 'closed'
+            };
+            return classes[status] || 'unknown';
+        }
+
+        // API Tests
+        async function testSafetyStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/api/safety/status`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('api-results', 
+                        `Safety Status API: ✅ Status: ${data.status}, Reason: ${data.reason}`, 
+                        'success'
+                    );
+                    updateSafetyDisplay(data);
+                } else {
+                    addResult('api-results', 
+                        `Safety Status API: ❌ Error: ${data.message}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                addResult('api-results', 
+                    `Safety Status API: ❌ Network Error: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        async function testViewingWindow() {
+            try {
+                const response = await fetch(`${API_BASE}/api/safety/viewing-window`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('api-results', 
+                        `Viewing Window API: ✅ Current window active: ${data.is_active}`, 
+                        'success'
+                    );
+                } else {
+                    addResult('api-results', 
+                        `Viewing Window API: ❌ Error: ${data.message}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                addResult('api-results', 
+                    `Viewing Window API: ❌ Network Error: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        async function testWeatherSafety() {
+            try {
+                const response = await fetch(`${API_BASE}/api/safety/weather`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('api-results', 
+                        `Weather Safety API: ✅ Safe: ${data.safe}`, 
+                        'success'
+                    );
+                } else {
+                    addResult('api-results', 
+                        `Weather Safety API: ❌ Error: ${data.message}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                addResult('api-results', 
+                    `Weather Safety API: ❌ Network Error: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // Safety Status Display
+        function updateSafetyDisplay(safetyData) {
+            const display = document.getElementById('safety-status-display');
+            const statusClass = getStatusIndicator(safetyData.status);
+            
+            display.innerHTML = `
+                <div class="test-result success">
+                    <span class="status-indicator ${statusClass}"></span>
+                    <span><strong>Status:</strong> ${safetyData.status}</span>
+                </div>
+                <div class="test-result">
+                    <strong>Reason:</strong> ${safetyData.reason}
+                </div>
+                <div class="test-result">
+                    <strong>Current Time:</strong> ${new Date(safetyData.currentTime).toLocaleString()}
+                </div>
+                ${safetyData.nextAvailable ? `
+                    <div class="test-result warning">
+                        <strong>Next Available:</strong> ${new Date(safetyData.nextAvailable).toLocaleString()}
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        async function refreshSafetyStatus() {
+            await testSafetyStatus();
+        }
+
+        // Telescope Control Tests
+        async function testTelescopeConnect() {
+            try {
+                const response = await fetch(`${API_BASE}/api/telescope/connect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ connected: true })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('telescope-results', 
+                        `Telescope Connect: ✅ Connected: ${data.connected}`, 
+                        'success'
+                    );
+                } else if (response.status === 423) {
+                    addResult('telescope-results', 
+                        `Telescope Connect: 🔒 Safety Lock Active: ${data.message}`, 
+                        'warning'
+                    );
+                } else {
+                    addResult('telescope-results', 
+                        `Telescope Connect: ❌ Error: ${data.message}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                addResult('telescope-results', 
+                    `Telescope Connect: ❌ Network Error: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        async function testTelescopeSlew() {
+            try {
+                const response = await fetch(`${API_BASE}/api/telescope/slew/coords`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ra: 12.5, dec: 45.0 })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('telescope-results', 
+                        `Telescope Slew: ✅ Slewing to coordinates`, 
+                        'success'
+                    );
+                } else if (response.status === 423) {
+                    addResult('telescope-results', 
+                        `Telescope Slew: 🔒 Safety Lock Active: ${data.message}`, 
+                        'warning'
+                    );
+                } else {
+                    addResult('telescope-results', 
+                        `Telescope Slew: ❌ Error: ${data.message}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                addResult('telescope-results', 
+                    `Telescope Slew: ❌ Network Error: ${error.message}`, 
+                    'error'
+                );
+            }
+        }
+
+        // Real-time Updates
+        function startRealTimeUpdates() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+            
+            document.getElementById('update-status').textContent = 'Running';
+            updateCount = 0;
+            
+            updateInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/api/safety/status`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        updateCount++;
+                        document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+                        document.getElementById('update-count').textContent = updateCount;
+                        updateSafetyDisplay(data);
+                    }
+                } catch (error) {
+                    console.error('Real-time update failed:', error);
+                }
+            }, 5000); // Update every 5 seconds for testing
+        }
+
+        function stopRealTimeUpdates() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+            }
+            document.getElementById('update-status').textContent = 'Stopped';
+        }
+
+        // Error Handling Tests
+        async function testErrorHandling() {
+            try {
+                // Test with invalid endpoint
+                const response = await fetch(`${API_BASE}/api/safety/invalid-endpoint`);
+                
+                if (response.status === 404) {
+                    addResult('error-results', 
+                        `Error Handling: ✅ 404 errors handled correctly`, 
+                        'success'
+                    );
+                } else {
+                    addResult('error-results', 
+                        `Error Handling: ❌ Unexpected response: ${response.status}`, 
+                        'error'
+                    );
+                }
+            } catch (error) {
+                addResult('error-results', 
+                    `Error Handling: ✅ Network errors caught: ${error.message}`, 
+                    'success'
+                );
+            }
+        }
+
+        async function testRetryMechanism() {
+            // Simulate retry by making multiple requests
+            let attempts = 0;
+            const maxAttempts = 3;
+            
+            async function attemptRequest() {
+                attempts++;
+                try {
+                    const response = await fetch(`${API_BASE}/api/safety/status`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        addResult('error-results', 
+                            `Retry Mechanism: ✅ Success on attempt ${attempts}`, 
+                            'success'
+                        );
+                        return true;
+                    } else {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    if (attempts < maxAttempts) {
+                        addResult('error-results', 
+                            `Retry Mechanism: ⏳ Attempt ${attempts} failed, retrying...`, 
+                            'warning'
+                        );
+                        setTimeout(attemptRequest, 1000);
+                    } else {
+                        addResult('error-results', 
+                            `Retry Mechanism: ❌ All ${maxAttempts} attempts failed`, 
+                            'error'
+                        );
+                    }
+                    return false;
+                }
+            }
+            
+            await attemptRequest();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            addResult('api-results', 'Integration test page loaded. Click buttons to test functionality.', 'success');
+        });
+    </script>
+</body>
+</html>

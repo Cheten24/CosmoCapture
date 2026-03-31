@@ -1,0 +1,74 @@
+name: CI checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend-ci:
+    name: Backend CI checks
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip' # caching pip dependencies
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsdl2-dev libfreetype6-dev pkg-config    
+
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          pip install -r requirements.txt
+
+      # - name: Lint check
+      #   uses: py-actions/flake8@v2
+      
+      - name: Fail on syntax errors
+        shell: bash
+        run: |
+          files=$(git ls-files '*.py')
+          if [ -n "$files" ]; then
+            python -m py_compile $files
+          else
+            echo "No Python files"
+          fi
+
+      - name: Pull Python base image with retry
+        run: |
+          for i in {1..3}; do
+            docker pull python:3.11-slim && break || sleep 10
+          done
+
+      - name: Build Docker image
+        run: |
+          docker build -t cse3cap-rsdcc-backend:latest .
+
+  frontend-ci:
+    name: Frontend CI checks
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          npm install
+      - name: Lint check
+        run: |
+          npm run lint
+      - name: Build React app
+        run: |
+          npm run build
