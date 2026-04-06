@@ -11,7 +11,7 @@ function HomePage() {
        src="/planets/earth.png"
        className="absolute left-[-120px] top-20 w-[450px] opacity-80 pointer-events-none"
       style={{
- animation: "floatAll 14s ease-in-out infinite",
+ animation: "float1 11s ease-in-out infinite",
  filter: "drop-shadow(0 0 40px rgba(255,255,255,0.15))"
 }}
      />
@@ -22,7 +22,7 @@ function HomePage() {
        src="/planets/saturn.png"
        className="absolute right-[-150px] bottom-0.5 w-[500px] opacity-90 pointer-events-none"
        style={{
- animation: "floatAll 12s ease-in-out infinite",
+ animation: "float2 10s ease-in-out infinite",
  filter: "drop-shadow(0 0 40px rgba(255,255,255,0.15))"
 }}
      />
@@ -33,7 +33,7 @@ function HomePage() {
        src="/planets/jupiter.png"
        className="absolute left-[40%] top-[25%] w-[300px] opacity-85 pointer-events-none"
        style={{
- animation: "floatAll 18s ease-in-out infinite",
+ animation: "float3 8s ease-in-out infinite",
  filter: "drop-shadow(0 0 40px rgba(255,255,255,0.15))"
 }}
      />
@@ -44,7 +44,7 @@ function HomePage() {
  src="/planets/moon.png"
  className="absolute right-10 top-10 w-[300px] opacity-85 pointer-events-none"
  style={{
-   animation: "floatAll 18s ease-in-out infinite",
+   animation: "float4 12s ease-in-out infinite",
    filter: "drop-shadow(0 0 40px rgba(255,255,255,0.15))"
  }}
 />

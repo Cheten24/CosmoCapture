@@ -5,7 +5,7 @@ import { Home, Telescope, CloudSun, Camera, Activity, Eye, Menu, X } from "lucid
 
 const menuItems = [
  { icon: <Home className="h-5 w-5" />, label: "Home", path: "/" },
- { icon: <Telescope className="h-5 w-5" />, label: "Telescope Feed", path: "/telescope-feed" },
+ { icon: <Telescope className="h-5 w-5" />, label: "Book Session", path: "/telescope-feed" },
  { icon: <Telescope className="h-5 w-5" />, label: "Telescope View", path: "/telescope-view" },
  { icon: <CloudSun className="h-5 w-5" />, label: "Weather", path: "/weather" },
  { icon: <Camera className="h-5 w-5" />, label: "Captures", path: "/recent-captures" },
