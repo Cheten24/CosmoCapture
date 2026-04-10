@@ -77,7 +77,7 @@ function HomePage() {
          </Link>
 
 
-         <Link to="/observability">
+         <Link to="/telescope-feed">
            <button className="px-6 py-3 border border-white/20 text-white/80 rounded-md hover:bg-white/10 transition">
              View Queue
            </button>
