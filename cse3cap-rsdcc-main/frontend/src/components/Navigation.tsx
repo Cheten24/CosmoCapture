@@ -31,7 +31,7 @@ const Navigation = () => {
          </Link>
 
 
-         {/* NAV ITEMS */}
+         {/* NAVi ITEMS */}
          <div className="hidden lg:flex items-center gap-8">
            {menuItems.map((item) => {
              const isActive = location.pathname === item.path
@@ -47,7 +47,7 @@ const Navigation = () => {
                      : "text-white/60 hover:text-white"
                  }`}
                >
-                 {/* ✅ ALL ICONS SAME COLOR */}
+
                  <span className="text-white/70">
                    {item.icon}
                  </span>
@@ -60,15 +60,19 @@ const Navigation = () => {
          </div>
 
 
-         {/* ✅ ONLY LOGIN (PROFESSIONAL WAY) */}
+
          <div className="hidden lg:flex items-center">
-           <button className="px-4 py-2 text-sm text-white/80 border border-white/20 rounded-md hover:bg-white/10 transition">
-             Login
-           </button>
+           <Link
+  to="/login"
+  className="px-4 py-2 text-sm text-white/80 border border-white/20 rounded-md hover:bg-white/10 transition"
+>
+  Login
+</Link>
          </div>
 
 
-         {/* MOBILE MENU */}
+
+
          <div className="lg:hidden">
            <button onClick={() => setIsOpen(!isOpen)}>
              {isOpen ? <X /> : <Menu />}
@@ -96,9 +100,13 @@ const Navigation = () => {
          ))}
 
 
-         <button className="w-full border border-white/20 text-white py-2 rounded-md">
-           Login
-         </button>
+         <Link
+  to="/login"
+  onClick={() => setIsOpen(false)}
+  className="block w-full border border-white/20 text-white py-2 rounded-md text-center"
+>
+  Login
+</Link>
        </div>
      )}
    </nav>
