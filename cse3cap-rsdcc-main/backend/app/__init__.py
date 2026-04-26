@@ -11,6 +11,8 @@ from .routes.space_objects import space_objects_bp
 from .routes.observability import observability_bp
 from .routes.visibility import visibility_bp
 from .routes.captures import captures_bp
+from .routes.auth import auth_bp
+from .routes.booking import booking_bp
 
 def create_app():
     """
@@ -32,6 +34,8 @@ def create_app():
     app.register_blueprint(observability_bp)
     app.register_blueprint(visibility_bp)
     app.register_blueprint(captures_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(booking_bp)
 
 
 
