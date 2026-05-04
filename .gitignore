@@ -1,7 +1,41 @@
-node_modules
-node_modules
-node_modules
-node_modules/
-backend/venv/
+# =========================
+# Python / Backend
+# =========================
+backend/.venv/
 backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.pyd
+*.py[cod]
+*.sqlite3
+*.db
+
+# Environment files
 .env
+.env.*
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+dist/
+build/
+*.log
+
+# =========================
+# VS Code & IDE
+# =========================
+.vscode/
+.idea/
+
+# =========================
+# macOS
+# =========================
+.DS_Store
+
+# =========================
+# Misc
+# =========================
+coverage/
+tmp/
+temp/
