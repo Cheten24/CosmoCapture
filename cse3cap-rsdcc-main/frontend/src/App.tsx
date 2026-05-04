@@ -7,6 +7,7 @@ import RecentCapturesPage from "./pages/RecentCapturesPage"
 import ObservabilityPage from "./pages/ObservabilityPage"
 import TelescopeViewPage from "./pages/TelescopeViewPage"
 import ObjectVisibilityDemo from "./pages/ObjectVisibilityDemo"
+import LoginPage from "./pages/loginpage"
 import { SafetyProvider } from "./contexts/SafetyContext"
 import Footer from "./components/Footer"
 
@@ -63,6 +64,7 @@ function App() {
               <Route path="/recent-captures" element={<RecentCapturesPage />} />
               <Route path="/observability" element={<ObservabilityPage />} />
               <Route path="/object-visibility" element={<ObjectVisibilityDemo />} />
+              <Route path="/login" element={<LoginPage />} />
             </Routes>
 
             <Footer />
