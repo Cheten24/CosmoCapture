@@ -32,6 +32,13 @@ def create_booking():
     except ValueError:
         return jsonify({"error": "Invalid time format (HH:MM)"}), 400
 
+    # Prevent duplicate booking by same user for same date and time
+    if any(b["name"] == name and b["date"] == date and b["time"] == time for b in bookings):
+        return jsonify({
+            "status": "error",
+            "message": "You already booked this slot"
+        }), 400
+
     # Check existing bookings for same slot
     same_slot = [b for b in bookings if b["date"] == date and b["time"] == time]
 
@@ -57,6 +64,7 @@ def create_booking():
         "message": "Booking processed",
         "booking": booking
     }), 201
+
 
 @booking_bp.route("", methods=["GET"])
 def list_bookings():
