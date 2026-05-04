@@ -50,8 +50,8 @@ export default function LoginPage() {
       setIsError(false)
 
       setTimeout(() => {
-  navigate("/telescope-feed")
-}, 1000)
+        navigate("/")
+      }, 1000)
     } else {
       setMessage("Invalid verification code.")
       setIsError(true)
