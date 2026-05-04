@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from datetime import datetime
 
 booking_bp = Blueprint("booking", __name__, url_prefix="/api/booking")
 
@@ -20,6 +21,23 @@ def create_booking():
 
     if not time:
         return jsonify({"error": "Time is required"}), 400
+
+    try:
+        datetime.strptime(date, "%Y-%m-%d")
+    except ValueError:
+        return jsonify({"error": "Invalid date format (YYYY-MM-DD)"}), 400
+
+    try:
+        datetime.strptime(time, "%H:%M")
+    except ValueError:
+        return jsonify({"error": "Invalid time format (HH:MM)"}), 400
+
+    # Prevent duplicate booking by same user for same date and time
+    if any(b["name"] == name and b["date"] == date and b["time"] == time for b in bookings):
+        return jsonify({
+            "status": "error",
+            "message": "You already booked this slot"
+        }), 400
 
     # Check existing bookings for same slot
     same_slot = [b for b in bookings if b["date"] == date and b["time"] == time]
@@ -46,6 +64,7 @@ def create_booking():
         "message": "Booking processed",
         "booking": booking
     }), 201
+
 
 @booking_bp.route("", methods=["GET"])
 def list_bookings():
