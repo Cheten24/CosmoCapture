@@ -1,25 +1,33 @@
 # --- Python ---
-# Ignore the virtual environment folder
+# Virtual environments
 venv/
+.venv/
 
-# Ignore Python cache files
+# Python cache
 __pycache__/
 *.pyc
-
-# --- Node.js / Frontend ---
-# Ignore frontend dependencies
-node_modules/
-
-# Ignore build output
-build/
-dist/
-
-# Ignore debug logs
-npm-debug.log*
-
-# --- IDE & OS ---
-# Ignore VS Code settings
-.vscode/
+*.pyo
+*.pyd
 
 # Environment variables
 .env
+
+# --- Node / Frontend ---
+node_modules/
+build/
+dist/
+npm-debug.log*
+
+# --- OS / System files ---
+.DS_Store
+Thumbs.db
+
+# --- IDE / Editor ---
+.vscode/
+.idea/
+
+# --- Logs ---
+*.log
+
+# --- Misc ---
+*.sqlite3
