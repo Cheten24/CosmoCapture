@@ -11,6 +11,37 @@ export default function LoginPage() {
   const [message, setMessage] = useState("")
   const [isError, setIsError] = useState(false)
 
+  //  NEW: Backend login function
+  const callBackendLogin = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:5001/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: username,   // IMPORTANT
+          email: email
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setMessage(data.error || "Login failed")
+        setIsError(true)
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error(error)
+      setMessage("Server error. Please try again.")
+      setIsError(true)
+      return false
+    }
+  }
+
   const handleSendCode = (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -32,7 +63,8 @@ export default function LoginPage() {
     setIsError(false)
   }
 
-  const handleVerifyCode = (e: React.FormEvent) => {
+  // 🔥 UPDATED: now async + backend call
+  const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!code.trim()) {
@@ -42,6 +74,10 @@ export default function LoginPage() {
     }
 
     if (code === "123456") {
+      const success = await callBackendLogin()
+
+      if (!success) return
+
       localStorage.setItem("isLoggedIn", "true")
       localStorage.setItem("username", username)
       localStorage.setItem("userEmail", email)
@@ -50,8 +86,8 @@ export default function LoginPage() {
       setIsError(false)
 
       setTimeout(() => {
-  navigate("/telescope-feed")
-}, 1000)
+        navigate("/")
+      }, 1000)
     } else {
       setMessage("Invalid verification code.")
       setIsError(true)
@@ -67,104 +103,56 @@ export default function LoginPage() {
           </h1>
 
           <p className="text-slate-300 text-center mb-8 leading-relaxed">
-            Enter your username and email to access telescope bookings and live observation features.
+            Enter your username and email to access telescope bookings.
           </p>
 
           {!codeSent ? (
             <form onSubmit={handleSendCode} className="space-y-5">
-              <div>
-                <label className="block text-white font-medium mb-2">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username"
-                  className="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                />
-              </div>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Username"
+                className="w-full p-3 rounded bg-slate-900 border"
+              />
 
-              <div>
-                <label className="block text-white font-medium mb-2">
-                Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your student email"
-                  className="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                />
-              </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                className="w-full p-3 rounded bg-slate-900 border"
+              />
 
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 transition duration-300 text-white px-6 py-3 rounded-xl font-semibold shadow-lg"
-              >
-                Send Verification Code
+              <button className="w-full bg-indigo-500 p-3 rounded">
+                Send Code
               </button>
             </form>
           ) : (
             <form onSubmit={handleVerifyCode} className="space-y-5">
-              <div>
-                <label className="block text-white font-medium mb-2">
-                  Verification Code
-                </label>
-                <input
-                  type="text"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="Enter the 6-digit code"
-                  className="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                />
-              </div>
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="Verification Code"
+                className="w-full p-3 rounded bg-slate-900 border"
+              />
 
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600 transition duration-300 text-white px-6 py-3 rounded-xl font-semibold shadow-lg"
-              >
-                Verify and Login
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setCodeSent(false)
-                  setCode("")
-                  setMessage("")
-                }}
-                className="w-full border border-slate-600 text-slate-200 px-6 py-3 rounded-xl font-semibold hover:bg-slate-700/50 transition duration-300"
-              >
-                Back
+              <button className="w-full bg-green-500 p-3 rounded">
+                Verify & Login
               </button>
             </form>
           )}
 
           {message && (
-            <div
-              className={`mt-5 rounded-xl border px-4 py-3 font-medium ${
-                isError
-                  ? "bg-red-500/10 border-red-400 text-red-300"
-                  : "bg-green-500/10 border-green-400 text-green-300"
-              }`}
-            >
+            <p className={isError ? "text-red-400" : "text-green-400"}>
               {message}
-            </div>
+            </p>
           )}
 
-          <p className="text-slate-500 text-xs text-center mt-3 leading-relaxed">
-            A verification code will be sent to your email to securely access your account.
-          </p>
-
-          <div className="text-center mt-6">
-            <Link
-              to="/"
-              className="text-indigo-300 hover:text-indigo-200 transition"
-            >
-              Back to Home
-            </Link>
-          </div>
+          <Link to="/" className="block mt-4 text-center text-blue-400">
+            Back to Home
+          </Link>
         </div>
       </div>
     </div>
