@@ -5,11 +5,11 @@ import { Home, Telescope, CloudSun, Camera, Activity, Eye, Menu, X } from "lucid
 
 const menuItems = [
  { icon: <Home className="h-5 w-5" />, label: "Home", path: "/" },
+ { icon: <Activity className="h-5 w-5" />, label: "Dashboard", path: "/Platform" },
  { icon: <Telescope className="h-5 w-5" />, label: "Book Session", path: "/telescope-feed" },
  { icon: <Telescope className="h-5 w-5" />, label: "Telescope View", path: "/telescope-view" },
  { icon: <CloudSun className="h-5 w-5" />, label: "Weather", path: "/weather" },
  { icon: <Camera className="h-5 w-5" />, label: "Captures", path: "/recent-captures" },
- { icon: <Activity className="h-5 w-5" />, label: "Observability", path: "/observability" },
  { icon: <Eye className="h-5 w-5" />, label: "Object Visibility", path: "/object-visibility" },
 ]
 
@@ -58,21 +58,7 @@ const Navigation = () => {
              )
            })}
          </div>
-
-
-
-         <div className="hidden lg:flex items-center">
-           <Link
-  to="/login"
-  className="px-4 py-2 text-sm text-white/80 border border-white/20 rounded-md hover:bg-white/10 transition"
->
-  Login
-</Link>
-         </div>
-
-
-
-
+         
          <div className="lg:hidden">
            <button onClick={() => setIsOpen(!isOpen)}>
              {isOpen ? <X /> : <Menu />}

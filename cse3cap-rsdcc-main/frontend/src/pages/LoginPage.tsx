@@ -6,43 +6,11 @@ export default function LoginPage() {
 
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
-  const [code, setCode] = useState("")
-  const [codeSent, setCodeSent] = useState(false)
   const [message, setMessage] = useState("")
   const [isError, setIsError] = useState(false)
 
-  //  NEW: Backend login function
-  const callBackendLogin = async () => {
-    try {
-      const response = await fetch("http://127.0.0.1:5001/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          name: username,   // IMPORTANT
-          email: email
-        })
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setMessage(data.error || "Login failed")
-        setIsError(true)
-        return false
-      }
-
-      return true
-    } catch (error) {
-      console.error(error)
-      setMessage("Server error. Please try again.")
-      setIsError(true)
-      return false
-    }
-  }
-
-  const handleSendCode = (e: React.FormEvent) => {
+  // BACKEND LOGIN
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!username.trim() || !email.trim()) {
@@ -52,109 +20,143 @@ export default function LoginPage() {
     }
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
     if (!emailPattern.test(email)) {
       setMessage("Please enter a valid email address.")
       setIsError(true)
       return
     }
 
-    setCodeSent(true)
-    setMessage(`Verification code sent to ${email}.`)
-    setIsError(false)
-  }
+    try {
+      const response = await fetch("http://127.0.0.1:5001/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: username,
+          email: email
+        })
+      })
 
-  // 🔥 UPDATED: now async + backend call
-  const handleVerifyCode = async (e: React.FormEvent) => {
-    e.preventDefault()
+      const data = await response.json()
 
-    if (!code.trim()) {
-      setMessage("Please enter the verification code.")
-      setIsError(true)
-      return
-    }
+      if (!response.ok) {
+        setMessage(data.error || "Login failed")
+        setIsError(true)
+        return
+      }
 
-    if (code === "123456") {
-      const success = await callBackendLogin()
-
-      if (!success) return
-
+      // SAVE LOGIN STATE
       localStorage.setItem("isLoggedIn", "true")
       localStorage.setItem("username", username)
       localStorage.setItem("userEmail", email)
 
-      setMessage("Login successful.")
+      setMessage("Access granted.")
       setIsError(false)
 
       setTimeout(() => {
         navigate("/")
       }, 1000)
-    } else {
-      setMessage("Invalid verification code.")
+
+    } catch (error) {
+      console.error(error)
+      setMessage("Server error. Please try again.")
       setIsError(true)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black text-white px-6 py-16">
-      <div className="max-w-md mx-auto">
-        <div className="rounded-3xl border border-slate-700 bg-slate-800/50 backdrop-blur-md p-8 shadow-2xl">
-          <h1 className="text-3xl md:text-4xl font-bold mb-3 text-center">
-            Student Login
-          </h1>
+    <div className="relative min-h-screen overflow-hidden flex items-center justify-center px-6">
 
-          <p className="text-slate-300 text-center mb-8 leading-relaxed">
-            Enter your username and email to access telescope bookings.
-          </p>
+      {/* 🎥 BACKGROUND VIDEO */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source src="/videos/bg-space.mp4" type="video/mp4" />
+      </video>
 
-          {!codeSent ? (
-            <form onSubmit={handleSendCode} className="space-y-5">
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
-                className="w-full p-3 rounded bg-slate-900 border"
-              />
+      {/* 🌑 DARK OVERLAY */}
+      <div className="absolute inset-0 bg-black/70"></div>
 
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                className="w-full p-3 rounded bg-slate-900 border"
-              />
+      {/* ✨ GRADIENT OVERLAY */}
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-950/20 via-black/40 to-black"></div>
 
-              <button className="w-full bg-indigo-500 p-3 rounded">
-                Send Code
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyCode} className="space-y-5">
-              <input
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="Verification Code"
-                className="w-full p-3 rounded bg-slate-900 border"
-              />
+      {/* LOGIN CARD */}
+      <div className="relative z-10 w-full max-w-md">
 
-              <button className="w-full bg-green-500 p-3 rounded">
-                Verify & Login
-              </button>
-            </form>
-          )}
+        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 md:p-10 shadow-[0_0_40px_rgba(37,99,235,0.15)]">
 
+          {/* TITLE */}
+          <div className="text-center mb-8">
+
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-wide">
+              CosmoCapture
+            </h1>
+
+            <p className="text-blue-200 text-lg font-light mb-3">
+              Observatory Access Portal
+            </p>
+
+            <p className="text-white/60 text-sm leading-relaxed">
+              Secure access to remote telescope systems, observatory monitoring,
+              and astronomical data capture.
+            </p>
+
+          </div>
+
+          {/* LOGIN FORM */}
+          <form onSubmit={handleLogin} className="space-y-5">
+
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              className="w-full p-4 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500"
+            />
+
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email Address"
+              className="w-full p-4 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500"
+            />
+
+            <button className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition duration-300 shadow-[0_0_25px_rgba(37,99,235,0.35)]">
+              Access Platform
+            </button>
+
+          </form>
+
+          {/* MESSAGE */}
           {message && (
-            <p className={isError ? "text-red-400" : "text-green-400"}>
+            <p
+              className={`mt-5 text-sm text-center ${
+                isError ? "text-red-400" : "text-green-400"
+              }`}
+            >
               {message}
             </p>
           )}
 
-          <Link to="/" className="block mt-4 text-center text-blue-400">
-            Back to Home
+          {/* BACK BUTTON */}
+          <Link
+            to="/"
+            className="block mt-8 text-center text-blue-300 hover:text-blue-200 transition"
+          >
+            ← Return to Homepage
           </Link>
+
         </div>
+
       </div>
+
     </div>
   )
 }
