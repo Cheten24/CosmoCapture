@@ -45,9 +45,11 @@ def create_booking():
     if len(same_slot) == 0:
         status = "confirmed"
         queue_position = 0
+    message = "Booking confirmed"
     else:
         status = "queued"
-        queue_position = len(same_slot)
+        queue_position = len(same_slot) + 1
+        message = f"Slot already booked. You are number {queue_position} in the queue"
 
     booking = {
         "id": len(bookings) + 1,
@@ -61,7 +63,8 @@ def create_booking():
     bookings.append(booking)
 
     return jsonify({
-        "message": "Booking processed",
+        "status": "success",
+        "message": message,
         "booking": booking
     }), 201
 
