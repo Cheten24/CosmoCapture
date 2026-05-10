@@ -6,12 +6,11 @@ export default function LoginPage() {
 
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
-  const [code, setCode] = useState("")
-  const [codeSent, setCodeSent] = useState(false)
   const [message, setMessage] = useState("")
   const [isError, setIsError] = useState(false)
 
-  const handleSendCode = (e: React.FormEvent) => {
+  // BACKEND LOGIN
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!username.trim() || !email.trim()) {
@@ -21,152 +20,143 @@ export default function LoginPage() {
     }
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
     if (!emailPattern.test(email)) {
       setMessage("Please enter a valid email address.")
       setIsError(true)
       return
     }
 
-    setCodeSent(true)
-    setMessage(`Verification code sent to ${email}.`)
-    setIsError(false)
-  }
+    try {
+      const response = await fetch("http://127.0.0.1:5001/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: username,
+          email: email
+        })
+      })
 
-  const handleVerifyCode = (e: React.FormEvent) => {
-    e.preventDefault()
+      const data = await response.json()
 
-    if (!code.trim()) {
-      setMessage("Please enter the verification code.")
-      setIsError(true)
-      return
-    }
+      if (!response.ok) {
+        setMessage(data.error || "Login failed")
+        setIsError(true)
+        return
+      }
 
-    if (code === "123456") {
+      // SAVE LOGIN STATE
       localStorage.setItem("isLoggedIn", "true")
       localStorage.setItem("username", username)
       localStorage.setItem("userEmail", email)
 
-      setMessage("Login successful.")
+      setMessage("Access granted.")
       setIsError(false)
 
       setTimeout(() => {
-  navigate("/telescope-feed")
-}, 1000)
-    } else {
-      setMessage("Invalid verification code.")
+        navigate("/")
+      }, 1000)
+
+    } catch (error) {
+      console.error(error)
+      setMessage("Server error. Please try again.")
       setIsError(true)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black text-white px-6 py-16">
-      <div className="max-w-md mx-auto">
-        <div className="rounded-3xl border border-slate-700 bg-slate-800/50 backdrop-blur-md p-8 shadow-2xl">
-          <h1 className="text-3xl md:text-4xl font-bold mb-3 text-center">
-            Student Login
-          </h1>
+    <div className="relative min-h-screen overflow-hidden flex items-center justify-center px-6">
 
-          <p className="text-slate-300 text-center mb-8 leading-relaxed">
-            Enter your username and email to access telescope bookings and live observation features.
-          </p>
+      {/* 🎥 BACKGROUND VIDEO */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source src="/videos/bg-space.mp4" type="video/mp4" />
+      </video>
 
-          {!codeSent ? (
-            <form onSubmit={handleSendCode} className="space-y-5">
-              <div>
-                <label className="block text-white font-medium mb-2">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username"
-                  className="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                />
-              </div>
+      {/* 🌑 DARK OVERLAY */}
+      <div className="absolute inset-0 bg-black/70"></div>
 
-              <div>
-                <label className="block text-white font-medium mb-2">
-                Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your student email"
-                  className="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                />
-              </div>
+      {/* ✨ GRADIENT OVERLAY */}
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-950/20 via-black/40 to-black"></div>
 
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 transition duration-300 text-white px-6 py-3 rounded-xl font-semibold shadow-lg"
-              >
-                Send Verification Code
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyCode} className="space-y-5">
-              <div>
-                <label className="block text-white font-medium mb-2">
-                  Verification Code
-                </label>
-                <input
-                  type="text"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="Enter the 6-digit code"
-                  className="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                />
-              </div>
+      {/* LOGIN CARD */}
+      <div className="relative z-10 w-full max-w-md">
 
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-cyan-500 to-indigo-500 hover:from-cyan-600 hover:to-indigo-600 transition duration-300 text-white px-6 py-3 rounded-xl font-semibold shadow-lg"
-              >
-                Verify and Login
-              </button>
+        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 md:p-10 shadow-[0_0_40px_rgba(37,99,235,0.15)]">
 
-              <button
-                type="button"
-                onClick={() => {
-                  setCodeSent(false)
-                  setCode("")
-                  setMessage("")
-                }}
-                className="w-full border border-slate-600 text-slate-200 px-6 py-3 rounded-xl font-semibold hover:bg-slate-700/50 transition duration-300"
-              >
-                Back
-              </button>
-            </form>
-          )}
+          {/* TITLE */}
+          <div className="text-center mb-8">
 
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-wide">
+              CosmoCapture
+            </h1>
+
+            <p className="text-blue-200 text-lg font-light mb-3">
+              Observatory Access Portal
+            </p>
+
+            <p className="text-white/60 text-sm leading-relaxed">
+              Secure access to remote telescope systems, observatory monitoring,
+              and astronomical data capture.
+            </p>
+
+          </div>
+
+          {/* LOGIN FORM */}
+          <form onSubmit={handleLogin} className="space-y-5">
+
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              className="w-full p-4 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500"
+            />
+
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email Address"
+              className="w-full p-4 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500"
+            />
+
+            <button className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition duration-300 shadow-[0_0_25px_rgba(37,99,235,0.35)]">
+              Access Platform
+            </button>
+
+          </form>
+
+          {/* MESSAGE */}
           {message && (
-            <div
-              className={`mt-5 rounded-xl border px-4 py-3 font-medium ${
-                isError
-                  ? "bg-red-500/10 border-red-400 text-red-300"
-                  : "bg-green-500/10 border-green-400 text-green-300"
+            <p
+              className={`mt-5 text-sm text-center ${
+                isError ? "text-red-400" : "text-green-400"
               }`}
             >
               {message}
-            </div>
+            </p>
           )}
 
-          <p className="text-slate-500 text-xs text-center mt-3 leading-relaxed">
-            A verification code will be sent to your email to securely access your account.
-          </p>
+          {/* BACK BUTTON */}
+          <Link
+            to="/"
+            className="block mt-8 text-center text-blue-300 hover:text-blue-200 transition"
+          >
+            ← Return to Homepage
+          </Link>
 
-          <div className="text-center mt-6">
-            <Link
-              to="/"
-              className="text-indigo-300 hover:text-indigo-200 transition"
-            >
-              Back to Home
-            </Link>
-          </div>
         </div>
+
       </div>
+
     </div>
   )
 }

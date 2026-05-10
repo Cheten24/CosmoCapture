@@ -1,4 +1,6 @@
 from flask import Flask
+from flask_cors import CORS
+import os
 import time
 
 # from .telemetry import setup_telemetry  # Temporarily disabled
@@ -15,6 +17,7 @@ from .routes.booking import booking_bp
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
 
     @app.route("/health")
     def health():

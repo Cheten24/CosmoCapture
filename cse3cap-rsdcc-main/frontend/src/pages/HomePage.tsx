@@ -1,94 +1,53 @@
-import { Link } from "react-router-dom"
-
+import { Link } from "react-router-dom";
 
 function HomePage() {
- return (
-   <div className="relative flex flex-col items-center justify-center text-center min-h-[80vh] px-6 overflow-hidden">
+  return (
+    <div className="relative h-screen w-full overflow-hidden flex items-center justify-center">
+
+      {/* BACKGROUND VIDEO */}
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source src="/videos/bg-space.mp4" type="video/mp4" />
+      </video>
+
+      {/* DARK OVERLAY */}
+      <div className="absolute inset-0 bg-black/20"></div>
 
 
-     {/* 🌍 EARTH */}
-     <img
-       src="/planets/earth.png"
-       className="absolute left-[-120px] top-20 w-[450px] opacity-80 pointer-events-none"
-      style={{
- animation: "float1 11s ease-in-out infinite",
- filter: "drop-shadow(0 0 40px rgba(255,255,255,0.15))"
-}}
-     />
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-900/20 via-black/40 to-black"></div>
 
+      {/* CONTENT */}
+      <div className="relative z-10 text-center px-6 max-w-4xl">
 
-     {/* 🪐 SATURN */}
-     <img
-       src="/planets/saturn.png"
-       className="absolute right-[-150px] bottom-0.5 w-[500px] opacity-90 pointer-events-none"
-       style={{
- animation: "float2 10s ease-in-out infinite",
- filter: "drop-shadow(0 0 40px rgba(255,255,255,0.15))"
-}}
-     />
+        <h1 className="text-5xl md:text-7xl font-bold text-white tracking-wide mb-6">
+          CosmoCapture
+        </h1>
 
+        <h2 className="text-xl md:text-3xl text-blue-200 font-light mb-6">
+          Remote Scientific Data Capture & Observatory Control
+        </h2>
 
-     {/* 🌕 JUPITER */}
-     <img
-       src="/planets/jupiter.png"
-       className="absolute left-[40%] top-[25%] w-[300px] opacity-85 pointer-events-none"
-       style={{
- animation: "float3 8s ease-in-out infinite",
- filter: "drop-shadow(0 0 40px rgba(255,255,255,0.15))"
-}}
-     />
+        <p className="text-white/70 text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
+          Access real-time telescope feeds, monitor observatory conditions,
+          and explore astronomical data from anywhere through a modern
+          remote observatory platform.
+        </p>
 
+        {/* LOGIN BUTTON */}
+        <Link to="/login">
+          <button className="px-8 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-medium transition duration-300 shadow-[0_0_30px_rgba(37,99,235,0.5)]">
+            Login
+          </button>
+        </Link>
 
-     {/* 🌑 MOON */}
-     <img
- src="/planets/moon.png"
- className="absolute right-10 top-10 w-[300px] opacity-85 pointer-events-none"
- style={{
-   animation: "float4 12s ease-in-out infinite",
-   filter: "drop-shadow(0 0 40px rgba(255,255,255,0.15))"
- }}
-/>
-
-
-     {/* CONTENT */}
-     <div className="relative z-10">
-
-
-<h1 className="text-4xl md:text-6xl font-semibold text-white mb-4">
- CosmoCapture – LogicLoop
-</h1>
-
-
-<h2 className="text-3xl md:text-5xl text-white/80 mb-8">
- Remote Telescope Control System
-</h2>
-
-
-      <p className="text-white/60 max-w-2xl text-lg mb-10 text-center mx-auto">
-       Book a session, join the observation queue, and access the telescope remotely in real time.
-       </p>
-
-
-       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-         <Link to="/telescope-feed">
-           <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition">
-             Book a Session
-           </button>
-         </Link>
-
-
-         <Link to="/telescope-feed">
-           <button className="px-6 py-3 border border-white/20 text-white/80 rounded-md hover:bg-white/10 transition">
-             View Queue
-           </button>
-         </Link>
-       </div>
-
-     </div>
-   </div>
- )
+      </div>
+    </div>
+  );
 }
 
-
-export default HomePage
-
+export default HomePage;
