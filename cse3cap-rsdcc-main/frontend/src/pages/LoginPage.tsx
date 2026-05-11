@@ -35,11 +35,11 @@ export default function LoginPage() {
       localStorage.setItem("isLoggedIn", "true")
       localStorage.setItem("username", response.user.name)
       localStorage.setItem("userEmail", response.user.email)
-      setMessage(response.message || "Login successful.")
+      setMessage("Access granted.")
       setIsError(false)
       setTimeout(() => navigate("/telescope-feed"), 1000)
     } catch (error: any) {
-      setMessage(error.message || "Login failed. Please try again.")
+      setMessage(error.message || "Server error. Please try again.")
       setIsError(true)
     } finally {
       setIsLoading(false)
@@ -47,50 +47,60 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-black text-white px-6 py-16">
-      <div className="max-w-md mx-auto">
-        <div className="rounded-3xl border border-slate-700 bg-slate-800/50 backdrop-blur-md p-8 shadow-2xl">
-          <h1 className="text-3xl md:text-4xl font-bold mb-3 text-center">Student Login</h1>
-          <p className="text-slate-300 text-center mb-8 leading-relaxed">
-            Enter your username and email to access telescope bookings and live observation features.
-          </p>
+    <div className="relative min-h-screen overflow-hidden flex items-center justify-center px-6">
+
+      <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
+        <source src="/videos/bg-space.mp4" type="video/mp4" />
+      </video>
+
+      <div className="absolute inset-0 bg-black/70"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-blue-950/20 via-black/40 to-black"></div>
+
+      <div className="relative z-10 w-full max-w-md">
+        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 md:p-10 shadow-[0_0_40px_rgba(37,99,235,0.15)]">
+
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-wide">CosmoCapture</h1>
+            <p className="text-blue-200 text-lg font-light mb-3">Observatory Access Portal</p>
+            <p className="text-white/60 text-sm leading-relaxed">
+              Secure access to remote telescope systems, observatory monitoring, and astronomical data capture.
+            </p>
+          </div>
+
           <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <label className="block text-white font-medium mb-2">Username</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter your username"
-                className="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-            </div>
-            <div>
-              <label className="block text-white font-medium mb-2">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your student email"
-                className="w-full rounded-xl bg-slate-900 border border-slate-600 text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-            </div>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              className="w-full p-4 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500"
+            />
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email Address"
+              className="w-full p-4 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500"
+            />
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 transition duration-300 text-white px-6 py-3 rounded-xl font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition duration-300 shadow-[0_0_25px_rgba(37,99,235,0.35)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Logging in..." : "Login"}
+              {isLoading ? "Logging in..." : "Access Platform"}
             </button>
           </form>
+
           {message && (
-            <div className={`mt-5 rounded-xl border px-4 py-3 font-medium ${isError ? "bg-red-500/10 border-red-400 text-red-300" : "bg-green-500/10 border-green-400 text-green-300"}`}>
+            <p className={`mt-5 text-sm text-center ${isError ? "text-red-400" : "text-green-400"}`}>
               {message}
-            </div>
+            </p>
           )}
-          <div className="text-center mt-6">
-            <Link to="/" className="text-indigo-300 hover:text-indigo-200 transition">Back to Home</Link>
-          </div>
+
+          <Link to="/" className="block mt-8 text-center text-blue-300 hover:text-blue-200 transition">
+            ← Return to Homepage
+          </Link>
+
         </div>
       </div>
     </div>
