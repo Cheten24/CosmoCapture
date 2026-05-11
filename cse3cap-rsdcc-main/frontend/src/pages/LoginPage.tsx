@@ -69,7 +69,7 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-screen overflow-hidden flex items-center justify-center px-6">
 
-      {/* 🎥 BACKGROUND VIDEO */}
+      {/* BACKGROUND VIDEO */}
       <video
         autoPlay
         loop
@@ -80,10 +80,10 @@ export default function LoginPage() {
         <source src="/videos/bg-space.mp4" type="video/mp4" />
       </video>
 
-      {/* 🌑 DARK OVERLAY */}
+      {/* DARK OVERLAY */}
       <div className="absolute inset-0 bg-black/70"></div>
 
-      {/* ✨ GRADIENT OVERLAY */}
+      {/* GRADIENT OVERLAY */}
       <div className="absolute inset-0 bg-gradient-to-b from-blue-950/20 via-black/40 to-black"></div>
 
       {/* LOGIN CARD */}
