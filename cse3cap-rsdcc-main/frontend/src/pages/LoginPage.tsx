@@ -20,26 +20,38 @@ export default function LoginPage() {
       return
     }
 
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailPattern.test(email)) {
-      setMessage("Please enter a valid email address.")
-      setIsError(true)
-      return
-    }
-
-    setIsLoading(true)
-    setMessage("")
-
     try {
-      const response = await loginUser(username, email)
+      const response = await fetch("http://127.0.0.1:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: username,
+          email: email,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setMessage(data.error || "Login failed")
+        setIsError(true)
+        return
+      }
+
       localStorage.setItem("isLoggedIn", "true")
       localStorage.setItem("username", response.user.name)
       localStorage.setItem("userEmail", response.user.email)
       setMessage("Access granted.")
       setIsError(false)
-      setTimeout(() => navigate("/telescope-feed"), 1000)
-    } catch (error: any) {
-      setMessage(error.message || "Server error. Please try again.")
+
+      setTimeout(() => {
+       navigate("/Platform")
+      }, 1000)
+    } catch (error) {
+      console.error("LOGIN ERROR:", error)
+      setMessage("Server error. Please try again.")
       setIsError(true)
     } finally {
       setIsLoading(false)
@@ -48,8 +60,6 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden flex items-center justify-center px-6">
-
-      {/* BACKGROUND VIDEO */}
       <video
         autoPlay
         loop
@@ -60,15 +70,11 @@ export default function LoginPage() {
         <source src="/videos/bg-space.mp4" type="video/mp4" />
       </video>
 
-      {/* DARK OVERLAY */}
       <div className="absolute inset-0 bg-black/70"></div>
-
-      {/* GRADIENT OVERLAY */}
       <div className="absolute inset-0 bg-gradient-to-b from-blue-950/20 via-black/40 to-black"></div>
 
       <div className="relative z-10 w-full max-w-md">
         <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 md:p-10 shadow-[0_0_40px_rgba(37,99,235,0.15)]">
-
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 tracking-wide">
               CosmoCapture
@@ -126,7 +132,6 @@ export default function LoginPage() {
           >
             ← Return to Homepage
           </Link>
-
         </div>
       </div>
     </div>
