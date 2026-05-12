@@ -90,7 +90,7 @@ export default function BookingSection() {
   return (
     <section className="relative min-h-screen overflow-hidden px-6 py-20 bg-black">
 
-      {/* 🌌 GALAXY BACKGROUND */}
+      {/* GALAXY BACKGROUND */}
       <div
         className="absolute inset-0 z-0"
         style={{
@@ -102,7 +102,7 @@ export default function BookingSection() {
         }}
       />
 
-      {/* 🌑 DARK OVERLAY */}
+      {/* DARK OVERLAY */}
       <div className="absolute inset-0 bg-black/30 z-[1]" />
 
       {/* CONTENT */}

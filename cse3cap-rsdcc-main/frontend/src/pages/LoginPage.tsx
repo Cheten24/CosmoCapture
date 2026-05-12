@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import { loginUser } from "../services/authService"
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -8,6 +9,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [message, setMessage] = useState("")
   const [isError, setIsError] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,9 +41,8 @@ export default function LoginPage() {
       }
 
       localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("username", username)
-      localStorage.setItem("userEmail", email)
-
+      localStorage.setItem("username", response.user.name)
+      localStorage.setItem("userEmail", response.user.email)
       setMessage("Access granted.")
       setIsError(false)
 
@@ -52,6 +53,8 @@ export default function LoginPage() {
       console.error("LOGIN ERROR:", error)
       setMessage("Server error. Please try again.")
       setIsError(true)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -104,8 +107,12 @@ export default function LoginPage() {
               className="w-full p-4 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500"
             />
 
-            <button className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition duration-300 shadow-[0_0_25px_rgba(37,99,235,0.35)]">
-              Access Platform
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition duration-300 shadow-[0_0_25px_rgba(37,99,235,0.35)] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? "Logging in..." : "Access Platform"}
             </button>
           </form>
 
