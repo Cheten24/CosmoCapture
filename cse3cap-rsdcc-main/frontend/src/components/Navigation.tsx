@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom"
 import { Home, Telescope, CloudSun, Camera, Activity, Eye, Menu, X, LogOut } from "lucide-react"
 
 const menuItems = [
-  { icon: <Home className="h-5 w-5" />, label: "Home", path: "/" },
+ { icon: <Home className="h-5 w-5" />, label: "Login Page", path: "/" },
   { icon: <Activity className="h-5 w-5" />, label: "Dashboard", path: "/Platform" },
   { icon: <Telescope className="h-5 w-5" />, label: "Book Session", path: "/telescope-feed" },
   { icon: <Telescope className="h-5 w-5" />, label: "Telescope View", path: "/telescope-view" },

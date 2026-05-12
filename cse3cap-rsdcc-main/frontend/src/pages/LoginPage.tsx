@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { loginUser } from "../services/authService"
+
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -19,7 +19,7 @@ export default function LoginPage() {
       setIsError(true)
       return
     }
-
+setIsLoading(true)
     try {
       const response = await fetch("http://127.0.0.1:5000/api/auth/login", {
         method: "POST",
@@ -41,8 +41,8 @@ export default function LoginPage() {
       }
 
       localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("username", response.user.name)
-      localStorage.setItem("userEmail", response.user.email)
+  localStorage.setItem("username", username)
+localStorage.setItem("userEmail", email)
       setMessage("Access granted.")
       setIsError(false)
 
