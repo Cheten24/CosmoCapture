@@ -25,7 +25,7 @@ function AppContent() {
   return (
     <div className="relative min-h-screen overflow-hidden">
 
-      {/* 🌌 GALAXY BACKGROUND */}
+      {/* GALAXY BACKGROUND */}
       <div
         className="absolute inset-0 z-0"
         style={{
@@ -37,7 +37,7 @@ function AppContent() {
         }}
       />
 
-      {/* ⭐ STARS */}
+      {/* STARS */}
       <div className="stars">
         {[...Array(200)].map((_, i) => (
           <div
@@ -55,10 +55,10 @@ function AppContent() {
         ))}
       </div>
 
-      {/* 🌑 OVERLAY */}
+      {/* OVERLAY */}
       <div className="absolute inset-0 bg-black/20 z-[2]" />
 
-      {/* 🌍 MAIN CONTENT */}
+      {/* MAIN CONTENT */}
       <div className="relative z-10">
 
         {/* NAVIGATION */}
