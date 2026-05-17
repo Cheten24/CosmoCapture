@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
-import os
 import requests
 
 booking_bp = Blueprint("booking", __name__, url_prefix="/api/booking")
@@ -9,44 +8,47 @@ bookings = []
 queue = []
 
 
-def check_weather_safety():
+def check_weather_safety(latitude="-37.8136", longitude="144.9631"):
     """
-    Live weather safety check using ThingSpeak.
-    For demo testing, humidity is only blocked if it is above 100.
+    Real weather safety check using Open-Meteo.
+    Uses GPS coordinates to check current weather before confirming booking.
     """
-    base_url = os.getenv("THINGSPEAK_API_BASE_URL", "https://api.thingspeak.com")
-    channel_id = os.getenv("THINGSPEAK_CHANNEL_ID", "270748")
-    endpoint = f"{base_url}/channels/{channel_id}/feeds.json?results=1"
+    endpoint = (
+        "https://api.open-meteo.com/v1/forecast"
+        f"?latitude={latitude}"
+        f"&longitude={longitude}"
+        "&current=temperature_2m,relative_humidity_2m,cloud_cover,precipitation,wind_speed_10m"
+    )
 
     try:
         response = requests.get(endpoint, timeout=5)
         response.raise_for_status()
         data = response.json()
 
-        feeds = data.get("feeds", [])
-        if not feeds:
-            return {"safe": False, "reason": "No live weather data available"}
+        current = data.get("current", {})
 
-        latest = feeds[-1]
-
-        temperature = float(latest.get("field1") or 0)
-        humidity = float(latest.get("field2") or 0)
-        pressure = float(latest.get("field3") or 0)
-        dew_point = float(latest.get("field4") or 0)
+        temperature = current.get("temperature_2m")
+        humidity = current.get("relative_humidity_2m")
+        cloud_cover = current.get("cloud_cover")
+        precipitation = current.get("precipitation")
+        wind_speed = current.get("wind_speed_10m")
 
         unsafe_reasons = []
 
-        if humidity > 100:
+        if humidity is not None and humidity > 90:
             unsafe_reasons.append("humidity is too high")
 
-        if temperature < -5 or temperature > 40:
+        if cloud_cover is not None and cloud_cover > 80:
+            unsafe_reasons.append("cloud cover is too high")
+
+        if precipitation is not None and precipitation > 0:
+            unsafe_reasons.append("rain/precipitation detected")
+
+        if wind_speed is not None and wind_speed > 35:
+            unsafe_reasons.append("wind speed is too high")
+
+        if temperature is not None and (temperature < -5 or temperature > 40):
             unsafe_reasons.append("temperature is outside safe range")
-
-        if pressure < 950 or pressure > 1050:
-            unsafe_reasons.append("pressure is outside safe range")
-
-        if dew_point > 20:
-            unsafe_reasons.append("dew point is too high")
 
         if unsafe_reasons:
             return {
@@ -54,27 +56,37 @@ def check_weather_safety():
                 "reason": "Unsafe weather: " + ", ".join(unsafe_reasons),
                 "temperature": temperature,
                 "humidity": humidity,
-                "pressure": pressure,
-                "dewPoint": dew_point
+                "cloudCover": cloud_cover,
+                "precipitation": precipitation,
+                "windSpeed": wind_speed,
+                "provider": "Open-Meteo"
             }
 
         return {
             "safe": True,
-            "reason": "Live weather conditions are safe for booking",
+            "reason": "Open-Meteo weather conditions are safe for booking",
             "temperature": temperature,
             "humidity": humidity,
-            "pressure": pressure,
-            "dewPoint": dew_point
+            "cloudCover": cloud_cover,
+            "precipitation": precipitation,
+            "windSpeed": wind_speed,
+            "provider": "Open-Meteo"
         }
 
     except Exception as e:
         return {
             "safe": False,
-            "reason": f"Could not verify live weather data: {str(e)}"
+            "reason": f"Could not verify weather data from Open-Meteo: {str(e)}",
+            "provider": "Open-Meteo"
         }
 
 
 def get_visible_objects_for_time(date, time, latitude, longitude):
+    """
+    Temporary object availability logic.
+    Uses booking date/time and GPS coordinates.
+    Later this can be upgraded with Skyfield or a real astronomy database.
+    """
     hour = int(time.split(":")[0])
 
     if 18 <= hour or hour <= 5:
@@ -92,6 +104,9 @@ def get_visible_objects_for_time(date, time, latitude, longitude):
 
 
 def check_object_visibility(object_name, date, time, latitude, longitude):
+    """
+    Checks whether the selected object is available for the chosen booking time/location.
+    """
     availability = get_visible_objects_for_time(date, time, latitude, longitude)
     visible_objects = availability["objects"]
 
@@ -176,7 +191,7 @@ def create_booking():
     if booking_datetime < datetime.now():
         return jsonify({"status": "error", "message": "Cannot book past time"}), 400
 
-    weather_check = check_weather_safety()
+    weather_check = check_weather_safety(latitude, longitude)
     if not weather_check["safe"]:
         return jsonify({
             "status": "rejected",
@@ -219,10 +234,12 @@ def create_booking():
         "estimatedWait": f"{queue_position * 30} minutes",
         "weatherSafe": weather_check["safe"],
         "weatherReason": weather_check["reason"],
+        "weatherProvider": weather_check.get("provider"),
         "temperature": weather_check.get("temperature"),
         "humidity": weather_check.get("humidity"),
-        "pressure": weather_check.get("pressure"),
-        "dewPoint": weather_check.get("dewPoint"),
+        "cloudCover": weather_check.get("cloudCover"),
+        "precipitation": weather_check.get("precipitation"),
+        "windSpeed": weather_check.get("windSpeed"),
         "objectVisible": visibility_check["visible"],
         "visibilityReason": visibility_check["reason"],
         "availableObjects": visibility_check["availableObjects"],
