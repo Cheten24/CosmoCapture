@@ -1,67 +1,53 @@
-import React, { useRef, useState } from "react"
+import { useRef, useState } from "react"
+import { Loader2, Check, AlertCircle, Camera } from "lucide-react"
 import { apiService } from "../services/api"
-import { Check, AlertCircle, Loader2 } from "lucide-react"
 
-type Props = {
-  /** Pass a ref to the <video> used by WebRTCStreamPlayer */
-  videoRef: React.RefObject<HTMLVideoElement | null>
-  /** The currently selected object name (from TelescopeControlPanel) */
-  selectedObjectName: string
-  /** Optional callback when capture succeeds */
+interface Props {
+  videoRef: React.RefObject<HTMLVideoElement>
+  selectedObjectName?: string
   onCaptureSuccess?: () => void
 }
 
-const SnapshotCapture: React.FC<Props> = ({ videoRef, selectedObjectName, onCaptureSuccess }) => {
+export default function SnapshotCapture({ videoRef, selectedObjectName, onCaptureSuccess }: Props) {
   const [busy, setBusy] = useState(false)
-  const [lastDownloadUrl, setLastDownloadUrl] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [lastDownloadUrl, setLastDownloadUrl] = useState<string | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const capture = async () => {
-    const v = videoRef.current
-    if (!v) {
-      setMessage({ type: "error", text: "Video stream not ready. Please wait for the stream to load." })
-      return
-    }
-    if (!v.videoWidth || !v.videoHeight) {
-      setMessage({ type: "error", text: "Video dimensions not available. Please ensure stream is playing." })
-      return
-    }
-    
     setBusy(true)
     setMessage(null)
-    
-    try {
-      // 1) read a frame into canvas
-      const w = v.videoWidth
-      const h = v.videoHeight
-      let canvas = canvasRef.current
-      if (!canvas) {
-        canvas = document.createElement("canvas")
-        canvasRef.current = canvas
-      }
-      canvas.width = w
-      canvas.height = h
-      const ctx = canvas.getContext("2d")
-      if (!ctx) throw new Error("Could not get 2D canvas context")
-      ctx.drawImage(v, 0, 0, w, h)
 
-      // 2) fetch live telescope coords at click time
+    try {
+      // 1) Validate video stream is ready
+      const video = videoRef.current
+      if (!video) throw new Error("No video element found.")
+      if (video.readyState < 2) throw new Error("Video stream is not ready yet. Please wait for the stream to load.")
+      if (video.videoWidth === 0 || video.videoHeight === 0) throw new Error("Video has no valid dimensions. Is the telescope camera connected?")
+
+      // 2) Capture frame to canvas
+      const canvas = canvasRef.current!
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const ctx = canvas.getContext("2d")
+      if (!ctx) throw new Error("Could not get canvas context.")
+      ctx.drawImage(video, 0, 0)
+
+      // 3) Fetch telescope coordinates
       let status = null
       try {
-        status = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8080"}/api/telescope/status`).then(r=>r.json())
+        status = await apiService.getTelescopeStatus()
       } catch (e) {
         console.warn("Could not fetch telescope status:", e)
-        // Continue anyway, just without coordinates
       }
 
-      // 3) turn canvas into blob
-      const blob: Blob | null = await new Promise((resolve) => canvas!.toBlob(resolve, "image/png"))
-      if (!blob) throw new Error("Failed to convert frame to PNG")
+      // 4) Convert to PNG blob
+      const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"))
+      if (!blob) throw new Error("Failed to convert frame to PNG.")
 
-      // 4) prepare form data
+      // 5) Prepare form data
       const form = new FormData()
-      const fileName = `snapshot_${new Date().toISOString().replace(/[:.]/g,"-")}.png`
+      const fileName = `snapshot_${new Date().toISOString().replace(/[:.]/g, "-")}.png`
       form.append("file", blob, fileName)
       form.append("objectName", selectedObjectName || "Unknown")
       form.append("timestamp", new Date().toISOString())
@@ -72,30 +58,30 @@ const SnapshotCapture: React.FC<Props> = ({ videoRef, selectedObjectName, onCapt
         if (status.az != null) form.append("az", String(status.az))
       }
 
-      // 5) upload
+      // 6) Upload
       const res = await apiService.uploadCapture(form)
-      setLastDownloadUrl(`${import.meta.env.VITE_API_URL || "http://localhost:8080"}${res.downloadUrl}`)
+      const downloadUrl = `${import.meta.env.VITE_API_URL || "http://localhost:8080"}${res.downloadUrl}`
+      setLastDownloadUrl(downloadUrl)
       setMessage({ type: "success", text: "Snapshot captured successfully!" })
 
-      // 6) optionally auto-download immediately:
+      // 7) Auto-download
       const a = document.createElement("a")
-      a.href = `${import.meta.env.VITE_API_URL || "http://localhost:8080"}${res.downloadUrl}`
+      a.href = downloadUrl
       a.download = fileName
       document.body.appendChild(a)
       a.click()
       a.remove()
 
-      // 7) notify parent component
-      if (onCaptureSuccess) {
-        onCaptureSuccess()
-      }
+      // 8) Notify parent
+      if (onCaptureSuccess) onCaptureSuccess()
 
-      // Clear success message after 3 seconds
       setTimeout(() => setMessage(null), 3000)
+
     } catch (e) {
       console.error("Snapshot capture failed:", e)
       const errorMsg = (e as Error).message || "Snapshot failed. Please try again."
       setMessage({ type: "error", text: errorMsg })
+      setTimeout(() => setMessage(null), 5000)
     } finally {
       setBusy(false)
     }
@@ -103,28 +89,31 @@ const SnapshotCapture: React.FC<Props> = ({ videoRef, selectedObjectName, onCapt
 
   return (
     <div className="space-y-3">
+      <canvas ref={canvasRef} className="hidden" />
       <div className="flex items-center gap-3">
         <button
           onClick={capture}
-          className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60 transition-colors flex items-center gap-2"
           disabled={busy}
+          className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60 transition-colors flex items-center gap-2"
         >
           {busy ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Capturing…</span>
+              <span>Capturing...</span>
             </>
           ) : (
             <>
-              <span>Snapshot</span>
+              <Camera className="h-4 w-4" />
+              <span>📸 Snapshot</span>
             </>
           )}
         </button>
+
         {lastDownloadUrl && (
-          <a
-            className="text-sm underline text-slate-300 hover:text-slate-100 transition-colors"
+          
             href={lastDownloadUrl}
             download
+            className="text-sm underline text-slate-300 hover:text-slate-100 transition-colors"
           >
             Download last capture
           </a>
@@ -132,23 +121,15 @@ const SnapshotCapture: React.FC<Props> = ({ videoRef, selectedObjectName, onCapt
       </div>
 
       {message && (
-        <div
-          className={`flex items-center gap-2 text-sm px-4 py-2 rounded-lg ${
-            message.type === "success"
-              ? "bg-green-900/30 border border-green-700/50 text-green-300"
-              : "bg-red-900/30 border border-red-700/50 text-red-300"
-          }`}
-        >
-          {message.type === "success" ? (
-            <Check className="h-4 w-4" />
-          ) : (
-            <AlertCircle className="h-4 w-4" />
-          )}
+        <div className={`flex items-center gap-2 text-sm px-4 py-2 rounded-lg ${
+          message.type === "success"
+            ? "bg-green-900/30 border border-green-700/50 text-green-300"
+            : "bg-red-900/30 border border-red-700/50 text-red-300"
+        }`}>
+          {message.type === "success" ? <Check className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
           <span>{message.text}</span>
         </div>
       )}
     </div>
   )
 }
-
-export default SnapshotCapture
