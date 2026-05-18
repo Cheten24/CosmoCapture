@@ -22,12 +22,13 @@ const WeatherWidget = () => {
     const fetchWeatherData = async () => {
       try {
         const data = await apiService.getWeatherData()
-
+          
+        console.log(data)
         setWeatherData({
-          temperature: `${data.temperature}°C`,
-          humidity: `${data.humidity}%`,
-          pressure: `${data.pressure} hPa`,
-          dew_point: `${data.dewPoint}`,
+      temperature: `${data.temperature}°C`,
+      humidity: `${data.humidity}%`,
+      pressure: `${data.pressure} hPa`,
+      dew_point: `${data.dewPoint}°C`,
         })
       } catch (e) {
         if (e instanceof Error) {
