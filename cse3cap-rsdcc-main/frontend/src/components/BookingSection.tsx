@@ -1,58 +1,28 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 
 const hours = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
 const minutes = ["00", "15", "30", "45"]
 const periods = ["AM", "PM"]
-const spaceObjects = [
-  {
-    name: "Moon",
-    visible: true,
-    ra: "08h 32m",
-    dec: "+18°",
-    description: "Earth's natural satellite.",
-  },
-  {
-    name: "Saturn",
-    visible: false,
-    ra: "21h 14m",
-    dec: "-12°",
-    description: "Planet with rings.",
-  },
-  {
-    name: "Jupiter",
-    visible: true,
-    ra: "02h 45m",
-    dec: "-08°",
-    description: "Largest planet in the solar system.",
-  },
-  {
-    name: "Mars",
-    visible: true,
-    ra: "07h 18m",
-    dec: "+24°",
-    description: "Known as the red planet.",
-  },
-  {
-    name: "Orion Nebula",
-    visible: false,
-    ra: "05h 35m",
-    dec: "-05°",
-    description: "A bright diffuse nebula.",
-  },
-]
+
 
 export default function BookingSection() {
   const [selectedDate, setSelectedDate] = useState("")
   const [selectedHour, setSelectedHour] = useState("3")
   const [selectedMinute, setSelectedMinute] = useState("15")
   const [selectedPeriod, setSelectedPeriod] = useState("PM")
-  const [selectedObject, setSelectedObject] = useState("Moon")
+
+  const [availableObjects, setAvailableObjects] = useState<any[]>([])
+  const [selectedObject, setSelectedObject] = useState("")
+
+  const [loadingObjects, setLoadingObjects] = useState(false)
+  const [objectError, setObjectError] = useState("")
+
   const [message, setMessage] = useState("")
   const [isError, setIsError] = useState(false)
-  
+
   const dateInputRef = useRef<HTMLInputElement>(null)
 
-  
+
 
   const getTodayString = () => {
     const today = new Date()
@@ -82,9 +52,59 @@ export default function BookingSection() {
     dateInputRef.current?.showPicker()
   }
 
-  const handleBooking = () => {
+  useEffect(() => {
+    const fetchVisibleObjects = async () => {
+      if (!selectedDate) return
+
+      setLoadingObjects(true)
+      setObjectError("")
+      setSelectedObject("")
+
+      try {
+        const hour24 = convertTo24Hour(selectedHour, selectedPeriod)
+
+        const formattedHour = String(hour24).padStart(2, "0")
+
+        const fullTime = `${formattedHour}:${selectedMinute}:00`
+
+        // Example Melbourne GPS coordinates
+        const latitude = -37.8136
+        const longitude = 144.9631
+
+        const response = await fetch(
+          `http://localhost:8080/api/visibility/objects?date=${selectedDate}&time=${fullTime}&lat=${latitude}&lng=${longitude}`
+        )
+
+        const data = await response.json()
+
+        console.log(data)
+
+        if (data.objects && data.objects.length > 0) {
+          setAvailableObjects(data.objects)
+        } else {
+          setAvailableObjects([])
+          setObjectError("No visible objects available for this date and time.")
+        }
+      } catch (error) {
+        console.error(error)
+        setObjectError("Failed to fetch visible objects.")
+      } finally {
+        setLoadingObjects(false)
+      }
+    }
+
+    fetchVisibleObjects()
+  }, [selectedDate, selectedHour, selectedMinute, selectedPeriod])
+
+  const handleBooking = async () => {
     if (!selectedDate) {
       setMessage("Please choose a date for your session.")
+      setIsError(true)
+      return
+    }
+
+    if (!selectedObject) {
+      setMessage("Please select an available object.")
       setIsError(true)
       return
     }
@@ -120,10 +140,34 @@ export default function BookingSection() {
 
     const fullTime = `${selectedHour}:${selectedMinute} ${selectedPeriod}`
 
-    setMessage(
-      `Booking request submitted for ${selectedDate} at ${fullTime} to observe ${selectedObject}.`
-    )
-    setIsError(false)
+    try {
+      const response = await fetch("http://localhost:8080/api/booking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          date: selectedDate,
+          time: fullTime,
+          object: selectedObject,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setMessage(data.message || "Booking successful.")
+        setIsError(false)
+      } else {
+        setMessage(data.error || "Booking failed.")
+        setIsError(true)
+      }
+    } catch (error) {
+      console.error(error)
+
+      setMessage("Failed to connect to booking server.")
+      setIsError(true)
+    }
   }
 
   return (
@@ -154,9 +198,8 @@ export default function BookingSection() {
           </h2>
 
           <p className="text-white/65 text-lg max-w-3xl leading-relaxed">
-            Select your preferred date, time, and space object to reserve a telescope
-            observation session. This interface is designed to make the booking
-            process simple, clear, and user-friendly.
+            Select your preferred date, time, and automatically discover
+            visible celestial objects available for observation.
           </p>
 
         </div>
@@ -195,33 +238,41 @@ export default function BookingSection() {
 
             </div>
 
-            {/* OBJECT */}
+            {/* OBJECT DROPDOWN */}
             <div>
 
               <label className="block text-white font-medium mb-2">
-                Select Space Object
+                Available Objects
               </label>
 
-              <select
-  value={selectedObject}
-  onChange={(e) => setSelectedObject(e.target.value)}
-  className="w-full rounded-xl bg-black/40 border border-white/10 text-white px-4 py-3 focus:outline-none focus:border-blue-400 transition"
->
-  <option value="">Select Object</option>
+              {loadingObjects ? (
+                <div className="w-full rounded-xl bg-black/40 border border-white/10 px-4 py-3 text-blue-400">
+                  Fetching visible objects...
+                </div>
+              ) : availableObjects.length > 0 ? (
+                <select
+                  value={selectedObject}
+                  onChange={(e) => setSelectedObject(e.target.value)}
+                  className="w-full rounded-xl bg-black/40 border border-white/10 text-white px-4 py-3 focus:outline-none focus:border-blue-400 transition"
+                >
+                  <option value="">Select Object</option>
 
-  {spaceObjects.map((object) => (
-    <option
-      key={object.name}
-      value={object.name}
-      disabled={!object.visible}
-    >
-      {object.name} •
-      {object.visible ? " Visible" : " Unavailable"} •
-      RA: {object.ra} •
-      Dec: {object.dec}
-    </option>
-  ))}
-</select>
+                  {availableObjects.map((object: any) => (
+                    <option
+                      key={object.name}
+                      value={object.name}
+                    >
+                      {object.name} •
+                      RA: {object.ra} •
+                      Dec: {object.dec}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="w-full rounded-xl bg-black/40 border border-red-400/20 px-4 py-3 text-red-300">
+                  {objectError || "No visible objects found."}
+                </div>
+              )}
 
             </div>
 
@@ -279,7 +330,12 @@ export default function BookingSection() {
           {/* BUTTON */}
           <button
             onClick={handleBooking}
-            className="mt-8 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 hover:scale-105 transition duration-300 text-white px-8 py-4 rounded-2xl font-semibold shadow-[0_0_25px_rgba(37,99,235,0.35)]"
+            disabled={!selectedObject || loadingObjects}
+            className={`mt-8 w-full sm:w-auto px-8 py-4 rounded-2xl font-semibold transition duration-300 ${
+              !selectedObject || loadingObjects
+                ? "bg-slate-700 text-slate-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 hover:scale-105 text-white shadow-[0_0_25px_rgba(37,99,235,0.35)]"
+            }`}
           >
             Book Now
           </button>
