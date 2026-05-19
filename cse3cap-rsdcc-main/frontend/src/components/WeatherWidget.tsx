@@ -25,11 +25,11 @@ const WeatherWidget = () => {
           
         console.log(data)
         setWeatherData({
-      temperature: `${data.temperature}°C`,
-      humidity: `${data.humidity}%`,
-      pressure: `${data.pressure} hPa`,
-      dew_point: `${data.dewPoint}°C`,
-        })
+            temperature: data.temperature,
+            humidity: data.humidity,
+            pressure: data.pressure,
+            dew_point: data.dewPoint,
+          })
       } catch (e) {
         if (e instanceof Error) {
           setError(e.message)

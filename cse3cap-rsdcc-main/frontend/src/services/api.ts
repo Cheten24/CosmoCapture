@@ -1,5 +1,5 @@
 // API service layer for backend communication
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080"
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000"
 
 interface ApiErrorResponse {
   message: string
@@ -276,32 +276,28 @@ class ApiService {
     }
   }
 
-  // Weather API methods with timeout protection
-  async getWeatherData(): Promise<WeatherData> {
-    try {
-      const [temperature, humidity, pressure, dewPoint] = await Promise.allSettled([
-        this.request<WeatherResponse>("/weather/temperature"),
-        this.request<WeatherResponse>("/weather/humidity"),
-        this.request<WeatherResponse>("/weather/pressure"),
-        this.request<WeatherResponse>("/weather/dew_point"),
-      ])
+ // Weather API methods with timeout protection
+async getWeatherData(): Promise<WeatherData> {
+  try {
+    const data = await this.request<any>("/weather/current")
 
-      return {
-        temperature: temperature.status === 'fulfilled' ? temperature.value.feeds[0]?.field1 || "N/A" : "N/A",
-        humidity: humidity.status === 'fulfilled' ? humidity.value.feeds[0]?.field2 || "N/A" : "N/A", 
-        pressure: pressure.status === 'fulfilled' ? pressure.value.feeds[0]?.field3 || "N/A" : "N/A",
-        dewPoint: dewPoint.status === 'fulfilled' ? dewPoint.value.feeds[0]?.field4 || "N/A" : "N/A",
-      }
-    } catch (error) {
-      console.warn('Weather API partially failed, returning fallback data', error)
-      return {
-        temperature: "N/A",
-        humidity: "N/A", 
-        pressure: "N/A",
-        dewPoint: "N/A",
-      }
+    return {
+      temperature: `${data.temperature}°C`,
+      humidity: `${data.humidity}%`,
+      pressure: `${data.pressure} hPa`,
+      dewPoint: `${data.dewPoint}°C`,
+    }
+  } catch (error) {
+    console.warn("Weather API failed, returning fallback data", error)
+
+    return {
+      temperature: "N/A",
+      humidity: "N/A",
+      pressure: "N/A",
+      dewPoint: "N/A",
     }
   }
+}
 
   async getWeatherTrends(): Promise<WeatherTrendResponse> {
     return this.request<WeatherTrendResponse>("/weather/trends")
