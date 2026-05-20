@@ -2,6 +2,8 @@ from flask import Flask
 from flask_cors import CORS
 import os
 import time
+import cv2
+from flask import Response
 # from .telemetry import setup_telemetry  # Temporarily disabled
 # Use a relative import to import from the same package (the 'app' folder)
 from .weather import weather_bp
@@ -21,6 +23,28 @@ def create_app():
     This is the application factory. It creates and configures the Flask app.
     """
     app = Flask(__name__)
+        camera = cv2.VideoCapture(0)
+
+    def generate_frames():
+        while True:
+            success, frame = camera.read()
+
+            if not success:
+                break
+            else:
+                ret, buffer = cv2.imencode('.jpg', frame)
+                frame = buffer.tobytes()
+
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+    @app.route('/video_feed')
+    def video_feed():
+        return Response(
+            generate_frames(),
+            
+        mimetype='multipart/x-mixed-replace; boundary=frame'
+    )
     CORS(app)   
 
     # app = setup_telemetry(app)  # Temporarily disabled
