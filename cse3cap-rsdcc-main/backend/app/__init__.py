@@ -14,6 +14,7 @@ from .routes.visibility import visibility_bp
 from .routes.captures import captures_bp
 from .routes.auth import auth_bp
 from .routes.booking import booking_bp
+from .routes.camera import camera_bp
 
 def create_app():
     """
@@ -38,6 +39,7 @@ def create_app():
     app.register_blueprint(captures_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(booking_bp)
+    app.register_blueprint(camera_bp)
 
 
 
