@@ -1,7 +1,8 @@
 from flask import Flask
 from flask_cors import CORS
 import time
-
+# from .telemetry import setup_telemetry  # Temporarily disabled
+# Use a relative import to import from the same package (the 'app' folder)
 from .weather import weather_bp
 from .routes.telescope import telescope_bp
 from .routes.safety import safety_bp
@@ -13,10 +14,9 @@ from .routes.captures import captures_bp
 from .routes.auth import auth_bp
 from .routes.booking import booking_bp
 
-
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    CORS(app)   
 
     @app.route("/")
     def home():
@@ -40,5 +40,7 @@ def create_app():
     app.register_blueprint(captures_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(booking_bp)
+
+
 
     return app
