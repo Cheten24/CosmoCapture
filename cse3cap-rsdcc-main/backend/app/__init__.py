@@ -1,6 +1,5 @@
 from flask import Flask
 from flask_cors import CORS
-import os
 import time
 # from .telemetry import setup_telemetry  # Temporarily disabled
 # Use a relative import to import from the same package (the 'app' folder)
@@ -16,18 +15,21 @@ from .routes.auth import auth_bp
 from .routes.booking import booking_bp
 
 def create_app():
-    """
-    This is the application factory. It creates and configures the Flask app.
-    """
     app = Flask(__name__)
     CORS(app)   
 
-    # app = setup_telemetry(app)  # Temporarily disabled
+    @app.route("/")
+    def home():
+        return "Backend Working"
 
     @app.route("/health")
     def health():
-        return {"status": "healthy", "timestamp": time.time()}
-    
+        return {
+            "status": "healthy",
+            "timestamp": time.time()
+        }
+
+    # Register all API blueprints
     app.register_blueprint(docs_bp)
     app.register_blueprint(weather_bp)
     app.register_blueprint(telescope_bp)
