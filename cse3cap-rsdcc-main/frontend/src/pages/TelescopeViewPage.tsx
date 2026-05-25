@@ -8,6 +8,7 @@ import WebRTCStreamPlayer from "../components/WebRTCStreamPlayer"
 import SnapshotCapture from "../components/SnapshotCapture"
 import RecentCaptures, { type RecentCapturesRef } from "../components/RecentCaptures"
 import { Maximize2, Minimize2 } from "lucide-react"
+import PhoneCamera from "../components/PhoneCamera"
 
 const TelescopeViewPage = () => {
   const [isViewFullScreen, setIsViewFullScreen] = useState(false)
@@ -77,11 +78,7 @@ const TelescopeViewPage = () => {
                   isViewFullScreen ? "flex-1" : "aspect-video"
                 }`}
               >
-                <WebRTCStreamPlayer 
-                  whepUrl="http://localhost:8889/telescope-view/whep" 
-                  label="Telescope Stream" 
-                  videoRef={videoRef}
-                />
+                <PhoneCamera />
               </div>
 
               {/* Snapshot button */}
