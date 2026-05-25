@@ -1,3 +1,4 @@
+import PhoneCamera from "./PhoneCamera"
 "use client"
 
 import { Link } from "react-router-dom"
@@ -41,17 +42,7 @@ const TelescopeView = () => {
             </div>
           </div>
         )}
-        <iframe
-          src={viewerUrl}
-          title="Telescope View WebRTC Stream"
-          className="w-full h-full border-0"
-          allow="autoplay; fullscreen"
-          allowFullScreen
-          onError={() => {
-            console.error("[v0] TelescopeView - Failed to load iframe:", viewerUrl)
-            setIframeError(true)
-          }}
-        />
+        <PhoneCamera />
       </div>
 
       {/* Info at the bottom of the telescope view */}
@@ -63,3 +54,4 @@ const TelescopeView = () => {
 }
 
 export default TelescopeView
+
