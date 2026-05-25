@@ -1,8 +1,9 @@
 from flask import Flask
 from flask_cors import CORS
 import time
+
 # from .telemetry import setup_telemetry  # Temporarily disabled
-# Use a relative import to import from the same package (the 'app' folder)
+
 from .weather import weather_bp
 from .routes.telescope import telescope_bp
 from .routes.safety import safety_bp
@@ -14,31 +15,11 @@ from .routes.captures import captures_bp
 from .routes.auth import auth_bp
 from .routes.booking import booking_bp
 from .routes.object_visibility import object_visibility_bp
+
+
 def create_app():
     app = Flask(__name__)
-        camera = cv2.VideoCapture(0)
-
-    def generate_frames():
-        while True:
-            success, frame = camera.read()
-
-            if not success:
-                break
-            else:
-                ret, buffer = cv2.imencode('.jpg', frame)
-                frame = buffer.tobytes()
-
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-    @app.route('/video_feed')
-    def video_feed():
-        return Response(
-            generate_frames(),
-            
-        mimetype='multipart/x-mixed-replace; boundary=frame'
-    )
-    CORS(app)   
+    CORS(app)
 
     @app.route("/")
     def home():
@@ -63,6 +44,5 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(booking_bp)
     app.register_blueprint(object_visibility_bp)
-
 
     return app
