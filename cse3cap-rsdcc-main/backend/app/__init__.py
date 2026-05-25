@@ -19,11 +19,8 @@ from .routes.booking import booking_bp
 from .routes.camera import camera_bp
 
 def create_app():
-    """
-    This is the application factory. It creates and configures the Flask app.
-    """
     app = Flask(__name__)
-        camera = cv2.VideoCapture(0)
+    camera = cv2.VideoCapture(0)
 
     def generate_frames():
         while True:
