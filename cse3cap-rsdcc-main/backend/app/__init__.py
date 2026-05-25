@@ -20,6 +20,8 @@ from .routes.camera import camera_bp
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
+
     camera = cv2.VideoCapture(0)
 
     def generate_frames():
@@ -39,10 +41,8 @@ def create_app():
     def video_feed():
         return Response(
             generate_frames(),
-            
-        mimetype='multipart/x-mixed-replace; boundary=frame'
-    )
-    CORS(app)   
+            mimetype='multipart/x-mixed-replace; boundary=frame'
+        )   
 
     # app = setup_telemetry(app)  # Temporarily disabled
 

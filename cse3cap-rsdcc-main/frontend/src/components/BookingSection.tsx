@@ -1,4 +1,7 @@
 import { useState, useRef } from "react"
+import { collection, addDoc } from "firebase/firestore"
+import { db } from "../firebase"
+
 
 const hours = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
 const minutes = ["00", "15", "30", "45"]
@@ -213,6 +216,14 @@ export default function BookingSection() {
       const data = await response.json()
 
       if (response.ok) {
+        await addDoc(collection(db, "bookings"), {
+          username: localStorage.getItem("username"),
+          email: localStorage.getItem("userEmail"),
+          object: selectedObject,
+          date: selectedDate,
+          time: fullTime,
+          createdAt: new Date(),
+        })
 
         setMessage(
           data.message || "Booking successful."
