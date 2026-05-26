@@ -11,7 +11,7 @@ def _safe_slug(s: str) -> str:
     return s or "unnamed"
 
 def _captures_root() -> str:
-    root = os.getenv("CAPTURES_DIR", "/data/captures")
+    root = os.path.join(os.getcwd(), "captures")
     os.makedirs(root, exist_ok=True)
     return root
 

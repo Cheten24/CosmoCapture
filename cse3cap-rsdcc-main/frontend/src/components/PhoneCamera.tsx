@@ -1,26 +1,35 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react"
 
-export default function PhoneCamera() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+interface Props {
+  videoRef: React.RefObject<HTMLVideoElement | null>
+}
+
+export default function PhoneCamera({ videoRef }: Props) {
 
   useEffect(() => {
+
     async function startCamera() {
+
       try {
+
         const stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: false,
-        });
+        })
 
         if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+          videoRef.current.srcObject = stream
         }
+
       } catch (err) {
-        console.error("Camera access denied:", err);
+
+        console.error("Camera access denied:", err)
       }
     }
 
-    startCamera();
-  }, []);
+    startCamera()
+
+  }, [videoRef])
 
   return (
     <video
@@ -30,5 +39,5 @@ export default function PhoneCamera() {
       muted
       className="w-full h-full bg-black rounded-lg"
     />
-  );
+  )
 }

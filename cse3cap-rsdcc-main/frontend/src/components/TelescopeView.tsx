@@ -2,7 +2,7 @@ import PhoneCamera from "./PhoneCamera"
 "use client"
 
 import { Link } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 
 const TelescopeView = () => {
   const origin = import.meta.env.VITE_MEDIAMTX_ORIGIN || "http://localhost:8889"
@@ -10,6 +10,7 @@ const TelescopeView = () => {
   const viewerUrl = `${origin.replace(/\/$/, "")}${streamPath}`
 
   const [iframeError, setIframeError] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     console.log("[v0] TelescopeView - MediaMTX Viewer URL:", viewerUrl)
@@ -42,7 +43,7 @@ const TelescopeView = () => {
             </div>
           </div>
         )}
-        <PhoneCamera />
+        <PhoneCamera videoRef={videoRef} />
       </div>
 
       {/* Info at the bottom of the telescope view */}

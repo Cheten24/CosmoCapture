@@ -153,7 +153,7 @@ const TelescopeViewPage = () => {
                   isViewFullScreen ? "flex-1" : "aspect-video"
                 }`}
               >
-                <PhoneCamera />
+                <PhoneCamera videoRef={videoRef} />
               </div>
 
               <div className="mt-4">
