@@ -2,10 +2,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 import time
 
-<<<<<<< HEAD
-=======
-# Main API blueprints
->>>>>>> 4f2fba1230ab6e6c1402773a2a599ce7ad579245
+
 from .weather import weather_bp
 from .routes.telescope import telescope_bp
 from .routes.safety import safety_bp
@@ -23,11 +20,9 @@ from .routes.object_visibility import object_visibility_bp
 def create_app():
 
     app = Flask(__name__)
-<<<<<<< HEAD
-    CORS(app)
-=======
->>>>>>> 4f2fba1230ab6e6c1402773a2a599ce7ad579245
 
+    CORS(app)
+    
     CORS(
         app,
         resources={
@@ -92,7 +87,6 @@ def create_app():
     app.register_blueprint(captures_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(booking_bp)
-<<<<<<< HEAD
 
     @app.route("/api/safety/status", methods=["GET", "OPTIONS"])
     def safety_status_fallback():
@@ -104,8 +98,5 @@ def create_app():
                 "isActive": True
             }
         }
-=======
-    app.register_blueprint(object_visibility_bp)
->>>>>>> 4f2fba1230ab6e6c1402773a2a599ce7ad579245
 
     return app

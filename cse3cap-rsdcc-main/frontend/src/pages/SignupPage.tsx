@@ -57,10 +57,28 @@ export default function SignupPage() {
       setTimeout(() => {
         navigate("/login")
       }, 1000)
-    } catch (error) {
-      console.error(error)
-      setMessage("Signup failed. Email may already be used.")
+
+    } catch (error: any) {
+
+      console.error("Signup error code:", error.code)
+      console.error("Signup error message:", error.message)
+
+      if (error.code === "auth/email-already-in-use") {
+        setMessage("Email already used. Try logging in instead.")
+      } else if (error.code === "auth/invalid-email") {
+        setMessage("Invalid email address.")
+      } else if (error.code === "auth/weak-password") {
+        setMessage("Password must be at least 6 characters.")
+      } else if (error.code === "auth/configuration-not-found") {
+        setMessage("Firebase Authentication is not enabled in Firebase Console.")
+      } else if (error.code === "auth/network-request-failed") {
+        setMessage("Network error. Check internet connection.")
+      } else {
+        setMessage(error.message || "Signup failed. Check browser console.")
+      }
+
       setIsError(true)
+
     } finally {
       setIsLoading(false)
     }
@@ -79,6 +97,7 @@ export default function SignupPage() {
           </p>
 
           <form onSubmit={handleSignup} className="space-y-5">
+
             <input
               type="text"
               value={username}
@@ -118,17 +137,26 @@ export default function SignupPage() {
             >
               {isLoading ? "Creating account..." : "Sign Up"}
             </button>
+
           </form>
 
           {message && (
-            <p className={`mt-5 text-sm text-center ${isError ? "text-red-400" : "text-green-400"}`}>
+            <p
+              className={`mt-5 text-sm text-center ${
+                isError ? "text-red-400" : "text-green-400"
+              }`}
+            >
               {message}
             </p>
           )}
 
-          <Link to="/login" className="block mt-8 text-center text-blue-300 hover:text-blue-200">
+          <Link
+            to="/login"
+            className="block mt-8 text-center text-blue-300 hover:text-blue-200"
+          >
             Already have an account? Login
           </Link>
+
         </div>
       </div>
     </div>
