@@ -1,47 +1,116 @@
-import ScrollReveal from "../components/ScrollReveal"
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react"
 
-const RecentCapturesPage = () => {
-  return (
-    <div
-      className="min-h-screen bg-transparent py-8 relative z-10"
-      style={{ pointerEvents: "all" }}
-    >
-      <div className="max-w-7xl mx-auto px-4">
-        <ScrollReveal direction="down" delay={0.1}>
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Recent Captures</h1>
-            <p className="text-slate-400">Browse your recent telescope captures</p>
-          </div>
-        </ScrollReveal>
+import {
+  collection,
+  getDocs,
+  orderBy,
+  query,
+} from "firebase/firestore"
 
-        <ScrollReveal direction="up" delay={0.3}>
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-slate-900/60 border border-slate-700 rounded-xl p-8 min-h-[320px] hover:border-slate-600 transition-colors">
-                <h2 className="text-2xl font-semibold text-white mb-6 text-center">
-                  Photos
-                </h2>
+import { db } from "../firebase"
 
-                <div className="h-[220px] rounded-xl border border-slate-700 bg-slate-950/40 flex items-center justify-center">
-                  <p className="text-slate-400 text-lg">Photos will appear here</p>
-                </div>
-              </div>
-
-              <div className="bg-slate-900/60 border border-slate-700 rounded-xl p-8 min-h-[320px] hover:border-slate-600 transition-colors">
-                <h2 className="text-2xl font-semibold text-white mb-6 text-center">
-                  Videos
-                </h2>
-
-                <div className="h-[220px] rounded-xl border border-slate-700 bg-slate-950/40 flex items-center justify-center">
-                  <p className="text-slate-400 text-lg">Videos will appear here</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ScrollReveal>
-      </div>
-    </div>
-  )
+export interface RecentCapturesRef {
+  refresh: () => void
 }
 
-export default RecentCapturesPage
+interface CaptureItem {
+  id: string
+  image: string
+  objectName: string
+  createdAt: any
+}
+
+const RecentCaptures = forwardRef<RecentCapturesRef>((props, ref) => {
+  const [captures, setCaptures] = useState<CaptureItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const loadCaptures = async () => {
+    try {
+      setLoading(true)
+
+      const snapshot = await getDocs(
+        collection(db, "captures")
+      )
+
+      const items: CaptureItem[] = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<CaptureItem, "id">),
+      }))
+      items.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() -
+          new Date(a.createdAt).getTime()
+      )
+
+      setCaptures(items)
+    } catch (error) {
+      console.error("Failed to load captures:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useImperativeHandle(ref, () => ({
+    refresh: loadCaptures,
+  }))
+
+  useEffect(() => {
+    loadCaptures()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="text-slate-400">
+        Loading captures...
+      </div>
+    )
+  }
+
+  if (captures.length === 0) {
+    return (
+      <div className="text-slate-400">
+        No captures yet.
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {captures.map((capture) => (
+        <div
+          key={capture.id}
+          className="bg-slate-900/50 border border-slate-700 rounded-2xl overflow-hidden"
+        >
+          <img
+            src={capture.image}
+            alt={capture.objectName}
+            className="w-full h-52 object-cover"
+          />
+
+          <div className="p-4">
+            <h4 className="text-white text-lg font-bold">
+              {capture.objectName}
+            </h4>
+
+            <p className="text-slate-400 text-sm mt-2">
+              {capture.createdAt
+                ? new Date(
+                    typeof capture.createdAt === "string"
+                      ? capture.createdAt
+                      : capture.createdAt.seconds * 1000
+                  ).toLocaleString()
+                : "No date"}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+})
+
+export default RecentCaptures

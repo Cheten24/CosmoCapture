@@ -1,7 +1,11 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 import time
 
+<<<<<<< HEAD
+=======
+# Main API blueprints
+>>>>>>> 4f2fba1230ab6e6c1402773a2a599ce7ad579245
 from .weather import weather_bp
 from .routes.telescope import telescope_bp
 from .routes.safety import safety_bp
@@ -12,22 +16,71 @@ from .routes.visibility import visibility_bp
 from .routes.captures import captures_bp
 from .routes.auth import auth_bp
 from .routes.booking import booking_bp
+from .routes.object_visibility import object_visibility_bp
+
 
 
 def create_app():
+
     app = Flask(__name__)
+<<<<<<< HEAD
     CORS(app)
+=======
+>>>>>>> 4f2fba1230ab6e6c1402773a2a599ce7ad579245
 
-    @app.route("/")
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": [
+                    "http://localhost:5173",
+                    "http://127.0.0.1:5173"
+                ],
+                "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization"]
+            }
+        },
+        supports_credentials=True
+    )
+
+    @app.route("/", methods=["GET"])
     def home():
-        return "Backend Working"
+        return jsonify({
+            "status": "success",
+            "message": "Backend Working",
+            "service": "CosmoCapture Backend"
+        }), 200
 
-    @app.route("/health")
+    @app.route("/health", methods=["GET"])
     def health():
-        return {
+        return jsonify({
             "status": "healthy",
             "timestamp": time.time()
-        }
+        }), 200
+
+    # Fallback safety route
+    @app.route("/api/safety/status", methods=["GET", "OPTIONS"])
+    def api_safety_status():
+        return jsonify({
+            "success": True,
+            "status": "safe",
+            "message": "Safety system operational",
+            "telescopeConnected": True,
+            "emergencyStop": False,
+            "weatherSafe": True,
+            "mountSafe": True,
+            "cameraSafe": True,
+            "timestamp": time.time()
+        }), 200
+
+    @app.route("/api/safety/health", methods=["GET", "OPTIONS"])
+    def api_safety_health():
+        return jsonify({
+            "success": True,
+            "status": "healthy",
+            "message": "Safety service is running",
+            "timestamp": time.time()
+        }), 200
 
     app.register_blueprint(docs_bp)
     app.register_blueprint(weather_bp)
@@ -39,6 +92,7 @@ def create_app():
     app.register_blueprint(captures_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(booking_bp)
+<<<<<<< HEAD
 
     @app.route("/api/safety/status", methods=["GET", "OPTIONS"])
     def safety_status_fallback():
@@ -50,5 +104,8 @@ def create_app():
                 "isActive": True
             }
         }
+=======
+    app.register_blueprint(object_visibility_bp)
+>>>>>>> 4f2fba1230ab6e6c1402773a2a599ce7ad579245
 
     return app

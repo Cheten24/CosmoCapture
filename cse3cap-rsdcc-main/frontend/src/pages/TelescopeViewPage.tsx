@@ -9,7 +9,11 @@ import PhoneCamera from "../components/PhoneCamera"
 
 const TelescopeViewPage = () => {
   const [isViewFullScreen, setIsViewFullScreen] = useState(false)
+<<<<<<< HEAD
   const [selectedObjectName] = useState<string>("Telescope View")
+=======
+  const [selectedObjectName, setSelectedObjectName] = useState<string>("")
+>>>>>>> 4f2fba1230ab6e6c1402773a2a599ce7ad579245
 
   const viewRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null!)
@@ -25,6 +29,16 @@ const TelescopeViewPage = () => {
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange)
     }
+<<<<<<< HEAD
+=======
+  }, [])
+  useEffect(() => {
+    const savedObject = localStorage.getItem("selectedObject")
+
+    if (savedObject) {
+      setSelectedObjectName(savedObject)
+    }
+>>>>>>> 4f2fba1230ab6e6c1402773a2a599ce7ad579245
   }, [])
 
   const toggleViewFullScreen = () => {
@@ -153,7 +167,11 @@ const TelescopeViewPage = () => {
                   isViewFullScreen ? "flex-1" : "aspect-video"
                 }`}
               >
+<<<<<<< HEAD
                 <PhoneCamera />
+=======
+                <PhoneCamera videoRef={videoRef} />
+>>>>>>> 4f2fba1230ab6e6c1402773a2a599ce7ad579245
               </div>
 
               <div className="mt-4">
@@ -166,6 +184,7 @@ const TelescopeViewPage = () => {
             </div>
           </ScrollReveal>
 
+<<<<<<< HEAD
           <ScrollReveal delay={0.2}>
             <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 shadow-2xl mt-6">
               <h3 className="text-xl font-semibold text-white mb-4">
@@ -175,6 +194,15 @@ const TelescopeViewPage = () => {
               <RecentCaptures ref={recentCapturesRef} />
             </div>
           </ScrollReveal>
+=======
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 shadow-2xl mt-6">
+            <h3 className="text-xl font-semibold text-white mb-4">
+              Recent Captures
+            </h3>
+
+            <RecentCaptures ref={recentCapturesRef} />
+          </div>
+>>>>>>> 4f2fba1230ab6e6c1402773a2a599ce7ad579245
         </div>
       </div>
     </div>

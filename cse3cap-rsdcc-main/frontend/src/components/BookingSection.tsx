@@ -1,4 +1,7 @@
 import { useState, useRef } from "react"
+import { collection, addDoc } from "firebase/firestore"
+import { db } from "../firebase"
+
 
 const hours = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
 const minutes = ["00", "15", "30", "45"]
@@ -165,81 +168,53 @@ export default function BookingSection() {
   // --------------------------------------------------
   const handleBooking = async () => {
 
-    if (!selectedDate) {
+  if (!selectedDate) {
 
-      setMessage("Please choose a date.")
-      setIsError(true)
+    setMessage("Please choose a date.")
+    setIsError(true)
 
-      return
-    }
-
-    if (!selectedObject) {
-
-      setMessage("Please select an object.")
-      setIsError(true)
-
-      return
-    }
-
-    try {
-
-      const selected24Hour = convertTo24Hour(
-        selectedHour,
-        selectedPeriod
-      )
-
-      const formattedHour = String(selected24Hour).padStart(2, "0")
-
-      const fullTime = `${formattedHour}:${selectedMinute}`
-
-      const response = await fetch(
-        "http://127.0.0.1:5000/api/booking",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify({
-            name: "Guest User",
-            date: selectedDate,
-            time: fullTime,
-            object: selectedObject,
-          }),
-        }
-      )
-
-      const data = await response.json()
-
-      if (response.ok) {
-
-        setMessage(
-          data.message || "Booking successful."
-        )
-
-        setIsError(false)
-
-      } else {
-
-        setMessage(
-          data.message || "Booking failed."
-        )
-
-        setIsError(true)
-      }
-
-    } catch (error) {
-
-      console.error(error)
-
-      setMessage(
-        "Failed to connect to booking server."
-      )
-
-      setIsError(true)
-    }
+    return
   }
+
+  if (!selectedObject) {
+
+    setMessage("Please select an object.")
+    setIsError(true)
+
+    return
+  }
+
+  try {
+
+    const selected24Hour = convertTo24Hour(
+      selectedHour,
+      selectedPeriod
+    )
+
+    const formattedHour = String(selected24Hour).padStart(2, "0")
+
+    const fullTime = `${formattedHour}:${selectedMinute}`
+
+    await addDoc(collection(db, "bookings"), {
+      username: localStorage.getItem("username"),
+      email: localStorage.getItem("userEmail"),
+      object: selectedObject,
+      date: selectedDate,
+      time: fullTime,
+      createdAt: new Date(),
+    })
+
+    setMessage("Booking successful.")
+    setIsError(false)
+
+  } catch (error) {
+
+    console.error(error)
+
+    setMessage("Booking failed.")
+    setIsError(true)
+  }
+}
 
   return (
 
@@ -393,9 +368,10 @@ export default function BookingSection() {
                   <button
                     key={object.name}
 
-                    onClick={() =>
+                    onClick={() => {
                       setSelectedObject(object.name)
-                    }
+                      localStorage.setItem("selectedObject", object.name)
+                    }}
 
                     className={`group relative rounded-2xl border p-5 transition duration-300 overflow-hidden transform ${
                       selectedObject === object.name

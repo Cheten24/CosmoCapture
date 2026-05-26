@@ -1,7 +1,8 @@
+import PhoneCamera from "./PhoneCamera"
 "use client"
 
 import { Link } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 
 const TelescopeView = () => {
   const origin = import.meta.env.VITE_MEDIAMTX_ORIGIN || "http://localhost:8889"
@@ -9,6 +10,7 @@ const TelescopeView = () => {
   const viewerUrl = `${origin.replace(/\/$/, "")}${streamPath}`
 
   const [iframeError, setIframeError] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
     console.log("[v0] TelescopeView - MediaMTX Viewer URL:", viewerUrl)
@@ -41,17 +43,7 @@ const TelescopeView = () => {
             </div>
           </div>
         )}
-        <iframe
-          src={viewerUrl}
-          title="Telescope View WebRTC Stream"
-          className="w-full h-full border-0"
-          allow="autoplay; fullscreen"
-          allowFullScreen
-          onError={() => {
-            console.error("[v0] TelescopeView - Failed to load iframe:", viewerUrl)
-            setIframeError(true)
-          }}
-        />
+        <PhoneCamera videoRef={videoRef} />
       </div>
 
       {/* Info at the bottom of the telescope view */}
@@ -63,3 +55,4 @@ const TelescopeView = () => {
 }
 
 export default TelescopeView
+
