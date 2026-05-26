@@ -9,7 +9,7 @@ import PhoneCamera from "../components/PhoneCamera"
 
 const TelescopeViewPage = () => {
   const [isViewFullScreen, setIsViewFullScreen] = useState(false)
-  const [selectedObjectName] = useState<string>("Telescope View")
+  const [selectedObjectName, setSelectedObjectName] = useState<string>("")
 
   const viewRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null!)
@@ -24,6 +24,13 @@ const TelescopeViewPage = () => {
 
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange)
+    }
+  }, [])
+  useEffect(() => {
+    const savedObject = localStorage.getItem("selectedObject")
+
+    if (savedObject) {
+      setSelectedObjectName(savedObject)
     }
   }, [])
 
@@ -166,15 +173,13 @@ const TelescopeViewPage = () => {
             </div>
           </ScrollReveal>
 
-          <ScrollReveal delay={0.2}>
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 shadow-2xl mt-6">
-              <h3 className="text-xl font-semibold text-white mb-4">
-                Recent Captures
-              </h3>
+          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 shadow-2xl mt-6">
+            <h3 className="text-xl font-semibold text-white mb-4">
+              Recent Captures
+            </h3>
 
-              <RecentCaptures ref={recentCapturesRef} />
-            </div>
-          </ScrollReveal>
+            <RecentCaptures ref={recentCapturesRef} />
+          </div>
         </div>
       </div>
     </div>

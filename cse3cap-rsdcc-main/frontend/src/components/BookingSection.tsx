@@ -368,9 +368,10 @@ export default function BookingSection() {
                   <button
                     key={object.name}
 
-                    onClick={() =>
+                    onClick={() => {
                       setSelectedObject(object.name)
-                    }
+                      localStorage.setItem("selectedObject", object.name)
+                    }}
 
                     className={`group relative rounded-2xl border p-5 transition duration-300 overflow-hidden transform ${
                       selectedObject === object.name
