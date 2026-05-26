@@ -1,26 +1,38 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
+
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy
+} from "firebase/firestore"
+
+import { db } from "../firebase"
 
 export default function QueueSection() {
-  const [joined, setJoined] = useState(false)
-  const [queueLength, setQueueLength] = useState(0)
-  const [estimatedWait, setEstimatedWait] = useState(0)
-  const [message, setMessage] = useState("")
+  const [queueBookings, setQueueBookings] = useState<any[]>([])
 
-  const handleJoinQueue = () => {
-    if (joined) {
-      setMessage("You have already joined the live viewing queue.")
-      return
-    }
+useEffect(() => {
 
-    const newQueueLength = queueLength + 1
-    const waitPerStudent = 15
-    const newEstimatedWait = newQueueLength * waitPerStudent
+  const q = query(
+    collection(db, "bookings"),
+    orderBy("createdAt", "asc")
+  )
 
-    setQueueLength(newQueueLength)
-    setEstimatedWait(newEstimatedWait)
-    setJoined(true)
-    setMessage("You have joined the live viewing queue.")
-  }
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+
+    const bookings = snapshot.docs.map((doc, index) => ({
+      id: doc.id,
+      queuePosition: index + 1,
+      ...doc.data(),
+    }))
+
+    setQueueBookings(bookings)
+  })
+
+  return () => unsubscribe()
+
+}, [])
 
   return (
     <section className="mb-14">
@@ -39,41 +51,17 @@ export default function QueueSection() {
           <div className="rounded-2xl bg-slate-900/80 border border-slate-700 p-5 shadow-md">
             <p className="text-slate-400 text-sm mb-2">Current Queue</p>
             <h3 className="text-3xl font-bold text-white">
-              {queueLength} {queueLength === 1 ? "student" : "students"}
+              {queueBookings.length} {queueBookings.length === 1 ? "student" : "students"}
             </h3>
           </div>
 
           <div className="rounded-2xl bg-slate-900/80 border border-slate-700 p-5 shadow-md">
             <p className="text-slate-400 text-sm mb-2">Estimated Wait Time</p>
             <h3 className="text-3xl font-bold text-white">
-              {estimatedWait} minutes
+              {queueBookings.length * 15} minutes
             </h3>
           </div>
-        </div>
-
-        <button
-          onClick={handleJoinQueue}
-          disabled={joined}
-          className={`mt-8 px-6 py-3 rounded-xl font-semibold text-white shadow-lg transition duration-300 ${
-            joined
-              ? "bg-slate-600 cursor-not-allowed"
-              : "bg-gradient-to-r from-indigo-500 to-cyan-500 hover:scale-105"
-          }`}
-        >
-          {joined ? "Queue Joined" : "Join Queue"}
-        </button>
-
-        {message && (
-          <div
-            className={`mt-5 rounded-xl border px-4 py-3 font-medium ${
-              joined
-                ? "bg-green-500/10 border-green-400 text-green-300"
-                : "bg-red-500/10 border-red-400 text-red-300"
-            }`}
-          >
-            {message}
-          </div>
-        )}
+                </div>
       </div>
     </section>
   )
