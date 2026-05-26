@@ -1,116 +1,105 @@
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useState,
-} from "react"
+import { useEffect, useState } from "react"
 
-import {
-  collection,
-  getDocs,
-  orderBy,
-  query,
-} from "firebase/firestore"
-
-import { db } from "../firebase"
-
-export interface RecentCapturesRef {
-  refresh: () => void
+type MediaItem = {
+  filename: string
+  url: string
 }
 
-interface CaptureItem {
-  id: string
-  image: string
-  objectName: string
-  createdAt: any
-}
-
-const RecentCaptures = forwardRef<RecentCapturesRef>((props, ref) => {
-  const [captures, setCaptures] = useState<CaptureItem[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const loadCaptures = async () => {
-    try {
-      setLoading(true)
-
-      const snapshot = await getDocs(
-        collection(db, "captures")
-      )
-
-      const items: CaptureItem[] = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...(doc.data() as Omit<CaptureItem, "id">),
-      }))
-      items.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() -
-          new Date(a.createdAt).getTime()
-      )
-
-      setCaptures(items)
-    } catch (error) {
-      console.error("Failed to load captures:", error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useImperativeHandle(ref, () => ({
-    refresh: loadCaptures,
-  }))
+export default function RecentCapturesPage() {
+  const [images, setImages] = useState<MediaItem[]>([])
+  const [videos, setVideos] = useState<MediaItem[]>([])
 
   useEffect(() => {
-    loadCaptures()
+    fetch("http://127.0.0.1:5000/api/captures/media")
+      .then((res) => res.json())
+      .then((data) => {
+        setImages(data.images || [])
+        setVideos(data.videos || [])
+      })
+      .catch((err) => console.error(err))
   }, [])
 
-  if (loading) {
-    return (
-      <div className="text-slate-400">
-        Loading captures...
-      </div>
-    )
-  }
-
-  if (captures.length === 0) {
-    return (
-      <div className="text-slate-400">
-        No captures yet.
-      </div>
-    )
-  }
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {captures.map((capture) => (
-        <div
-          key={capture.id}
-          className="bg-slate-900/50 border border-slate-700 rounded-2xl overflow-hidden"
-        >
-          <img
-            src={capture.image}
-            alt={capture.objectName}
-            className="w-full h-52 object-cover"
-          />
+    <div className="min-h-screen bg-black text-white px-8 py-10">
+      <h1 className="text-4xl font-bold mb-10">
+        Captured Media
+      </h1>
 
-          <div className="p-4">
-            <h4 className="text-white text-lg font-bold">
-              {capture.objectName}
-            </h4>
+      {/* IMAGES BLOCK */}
+      <div className="mb-16">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="text-3xl">📁</div>
 
-            <p className="text-slate-400 text-sm mt-2">
-              {capture.createdAt
-                ? new Date(
-                    typeof capture.createdAt === "string"
-                      ? capture.createdAt
-                      : capture.createdAt.seconds * 1000
-                  ).toLocaleString()
-                : "No date"}
-            </p>
-          </div>
+          <h2 className="text-3xl font-bold text-blue-400">
+            Images
+          </h2>
         </div>
-      ))}
+
+        {images.length === 0 ? (
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-10 text-slate-400">
+            No images captured yet
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {images.map((image) => (
+              <div
+                key={image.filename}
+                className="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-lg"
+              >
+                <img
+                  src={image.url}
+                  alt={image.filename}
+                  className="w-full h-64 object-cover"
+                />
+
+                <div className="p-4">
+                  <p className="text-sm text-slate-300 break-all">
+                    {image.filename}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* VIDEOS BLOCK */}
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="text-3xl">📁</div>
+
+          <h2 className="text-3xl font-bold text-purple-400">
+            Videos
+          </h2>
+        </div>
+
+        {videos.length === 0 ? (
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-10 text-slate-400">
+            No videos recorded yet
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {videos.map((video) => (
+              <div
+                key={video.filename}
+                className="bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-lg"
+              >
+                <video
+                  src={video.url}
+                  controls
+                  className="w-full h-72 bg-black"
+                />
+
+                <div className="p-4">
+                  <p className="text-sm text-slate-300 break-all">
+                    {video.filename}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
-})
-
-export default RecentCaptures
+}
