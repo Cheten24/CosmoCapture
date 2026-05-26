@@ -17,6 +17,7 @@ from .routes.object_visibility import object_visibility_bp
 
 
 def create_app():
+
     app = Flask(__name__)
 
     CORS(
@@ -49,8 +50,7 @@ def create_app():
             "timestamp": time.time()
         }), 200
 
-    # Fallback safety route.
-    # This fixes frontend calls to /api/safety/status even if safety.py route is not loading.
+    # Fallback safety route
     @app.route("/api/safety/status", methods=["GET", "OPTIONS"])
     def api_safety_status():
         return jsonify({

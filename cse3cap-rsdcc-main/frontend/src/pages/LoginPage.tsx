@@ -1,5 +1,11 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "firebase/auth"
+
+import { auth } from "../firebase"
 
 
 export default function LoginPage() {
@@ -7,6 +13,7 @@ export default function LoginPage() {
 
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [message, setMessage] = useState("")
   const [isError, setIsError] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -20,43 +27,69 @@ export default function LoginPage() {
       return
     }
 setIsLoading(true)
+try {
+
+  await signInWithEmailAndPassword(
+    auth,
+    email,
+    password
+  )
+
+  localStorage.setItem("isLoggedIn", "true")
+  localStorage.setItem("username", username)
+  localStorage.setItem("userEmail", email)
+
+  setMessage("Access granted.")
+  setIsError(false)
+
+  setTimeout(() => {
+    navigate("/Platform")
+  }, 1000)
+
+} catch (loginError: any) {
+
+  if (loginError.code === "auth/user-not-found") {
+
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: username,
-          email: email,
-        }),
-      })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        setMessage(data.error || "Login failed")
-        setIsError(true)
-        return
-      }
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      )
 
       localStorage.setItem("isLoggedIn", "true")
-  localStorage.setItem("username", username)
-localStorage.setItem("userEmail", email)
-      setMessage("Access granted.")
+      localStorage.setItem("username", username)
+      localStorage.setItem("userEmail", email)
+
+      setMessage("Account created successfully.")
       setIsError(false)
 
       setTimeout(() => {
-       navigate("/Platform")
+        navigate("/Platform")
       }, 1000)
-    } catch (error) {
-      console.error("LOGIN ERROR:", error)
-      setMessage("Server error. Please try again.")
+
+    } catch (signupError) {
+
+      console.error(signupError)
+
+      setMessage("Signup failed.")
       setIsError(true)
-    } finally {
-      setIsLoading(false)
     }
+
+  } else {
+
+    console.error(loginError)
+
+    setMessage("Login failed.")
+    setIsError(true)
   }
+
+} finally {
+
+  setIsLoading(false)
+}
+}
 
   return (
     <div className="relative min-h-screen overflow-hidden flex items-center justify-center px-6">
@@ -106,6 +139,13 @@ localStorage.setItem("userEmail", email)
               placeholder="Email Address"
               className="w-full p-4 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500"
             />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="w-full p-4 rounded-xl bg-black/40 border border-white/10 text-white placeholder:text-white/40 focus:outline-none focus:border-blue-500"
+            />
 
             <button
               type="submit"
@@ -125,6 +165,13 @@ localStorage.setItem("userEmail", email)
               {message}
             </p>
           )}
+          
+          <Link
+            to="/signup"
+            className="block mt-4 text-center text-blue-300 hover:text-blue-200 transition"
+          >
+            Don&apos;t have an account? Sign up
+          </Link>
 
           <Link
             to="/"

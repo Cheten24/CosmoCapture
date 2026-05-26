@@ -11,10 +11,15 @@ import WeatherMonitoringPage from "./pages/WeatherMonitoringPage"
 import RecentCapturesPage from "./pages/RecentCapturesPage"
 import ObjectVisibilityDemo from "./pages/ObjectVisibilityDemo"
 import { SafetyProvider } from "./contexts/SafetyContext"
+import SignupPage from "./pages/SignupPage"
+
 
 function AppContent() {
   const location = useLocation()
-  const hideNavigation = location.pathname === "/" || location.pathname === "/login"
+  const hideNavigation =
+  location.pathname === "/" ||
+  location.pathname === "/login" ||
+  location.pathname === "/signup"
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -36,6 +41,7 @@ function AppContent() {
           <Route path="/weather" element={<ProtectedRoute><WeatherMonitoringPage /></ProtectedRoute>} />
           <Route path="/recent-captures" element={<ProtectedRoute><RecentCapturesPage /></ProtectedRoute>} />
           <Route path="/object-visibility" element={<ProtectedRoute><ObjectVisibilityDemo /></ProtectedRoute>} />
+          <Route path="/signup" element={<SignupPage />} />
         </Routes>
         {!hideNavigation && <Footer />}
       </div>
