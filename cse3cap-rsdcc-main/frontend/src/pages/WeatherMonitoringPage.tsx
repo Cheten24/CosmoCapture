@@ -39,9 +39,7 @@ const WeatherMonitoringPage = () => {
                 </div>
 
                 <div className="flex items-center justify-between p-4 bg-slate-900/50 rounded-lg">
-                  <span className="text-slate-300">
-                    Seeing Conditions
-                  </span>
+                  <span className="text-slate-300">Seeing Conditions</span>
                   <span className="text-blue-400 font-semibold">
                     Good
                   </span>

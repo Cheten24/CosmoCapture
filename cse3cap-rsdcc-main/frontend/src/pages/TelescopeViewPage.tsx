@@ -2,18 +2,12 @@
 
 import { useState, useRef, useEffect } from "react"
 import ScrollReveal from "../components/ScrollReveal"
-import SnapshotCapture from "../components/SnapshotCapture"
-import RecentCaptures, { type RecentCapturesRef } from "../components/RecentCaptures"
 import { Maximize2, Minimize2 } from "lucide-react"
 import PhoneCamera from "../components/PhoneCamera"
 
 const TelescopeViewPage = () => {
   const [isViewFullScreen, setIsViewFullScreen] = useState(false)
-  const [selectedObjectName, setSelectedObjectName] = useState<string>("")
-
   const viewRef = useRef<HTMLDivElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null!)
-  const recentCapturesRef = useRef<RecentCapturesRef>(null)
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -26,13 +20,6 @@ const TelescopeViewPage = () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange)
     }
   }, [])
-  useEffect(() => {
-    const savedObject = localStorage.getItem("selectedObject")
-
-    if (savedObject) {
-      setSelectedObjectName(savedObject)
-    }
-  }, [])
 
   const toggleViewFullScreen = () => {
     if (!document.fullscreenElement && viewRef.current) {
@@ -43,10 +30,7 @@ const TelescopeViewPage = () => {
   }
 
   return (
-    <div
-      className="min-h-screen bg-transparent py-8 relative z-10"
-      style={{ pointerEvents: "all" }}
-    >
+    <div className="min-h-screen bg-transparent py-8 relative z-10">
       <div className="max-w-7xl mx-auto px-4">
         <ScrollReveal>
           <div className="flex items-center justify-between mb-8">
@@ -55,7 +39,7 @@ const TelescopeViewPage = () => {
                 Telescope View
               </h1>
               <p className="text-slate-400">
-                Current telescope field of view
+                Live camera feed, image capture, and video recording
               </p>
             </div>
           </div>
@@ -90,8 +74,10 @@ const TelescopeViewPage = () => {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-400">DST Active</span>
-                      <span className="text-white font-semibold">No</span>
+                      <span className="text-slate-400">Storage</span>
+                      <span className="text-blue-400 font-semibold">
+                        Images / Videos
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -137,13 +123,12 @@ const TelescopeViewPage = () => {
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold text-white">
-                  Live Telescope View
+                  Live Telescope Camera
                 </h2>
 
                 <button
                   onClick={toggleViewFullScreen}
                   className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg flex items-center gap-2 transition-colors"
-                  title="Fullscreen View"
                 >
                   {isViewFullScreen ? (
                     <Minimize2 className="h-5 w-5" />
@@ -155,31 +140,9 @@ const TelescopeViewPage = () => {
                 </button>
               </div>
 
-              <div
-                className={`bg-slate-900 rounded-lg flex items-center justify-center text-slate-300 border border-slate-700 overflow-hidden ${
-                  isViewFullScreen ? "flex-1" : "aspect-video"
-                }`}
-              >
-                <PhoneCamera videoRef={videoRef} />
-              </div>
-
-              <div className="mt-4">
-                <SnapshotCapture
-                  videoRef={videoRef}
-                  selectedObjectName={selectedObjectName}
-                  onCaptureSuccess={() => recentCapturesRef.current?.refresh()}
-                />
-              </div>
+              <PhoneCamera />
             </div>
           </ScrollReveal>
-
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-6 shadow-2xl mt-6">
-            <h3 className="text-xl font-semibold text-white mb-4">
-              Recent Captures
-            </h3>
-
-            <RecentCaptures ref={recentCapturesRef} />
-          </div>
         </div>
       </div>
     </div>

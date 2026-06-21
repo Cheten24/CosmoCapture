@@ -1,12 +1,6 @@
-import { initializeApp } from "firebase/app";
-
-import {
-  getFirestore
-} from "firebase/firestore";
-
-import {
-  getAuth
-} from "firebase/auth";
+import { initializeApp } from "firebase/app"
+import { getAuth } from "firebase/auth"
+import { getFirestore } from "firebase/firestore"
 
 const firebaseConfig = {
   apiKey: "AIzaSyDbW_Tskw0rdv0EWKW2KyNi6tnAhgY7Z9o",
@@ -14,12 +8,13 @@ const firebaseConfig = {
   projectId: "cosmocapture-2d88e",
   storageBucket: "cosmocapture-2d88e.firebasestorage.app",
   messagingSenderId: "15600910280",
-  appId: "1:15600910280:web:dfbf4638218eed8cfcafd",
-  measurementId: "G-JV01G53CZ"
-};
+  appId: "1:15600910280:web:dfbf4638218eed86cfcafd",
+  measurementId: "G-JGV01G53CZ",
+}
 
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig)
 
-export const db = getFirestore(app);
+export const auth = getAuth(app)
+export const db = getFirestore(app)
 
-export const auth = getAuth(app);
+export default app

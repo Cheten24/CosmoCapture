@@ -1,75 +1,96 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import {
-  ArrowLeft,
-  Telescope,
-  MapPin,
-  Clock,
-  RefreshCw,
-  Eye,
-} from "lucide-react";
-import { Link } from "react-router-dom";
-import EnhancedObjectList from "../components/EnhancedObjectList";
-import type { VisibleObject } from "../types/visibility";
+import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
+import { ArrowLeft, Eye, MapPin, Clock, RefreshCw, Telescope } from "lucide-react"
 
-const ObjectVisibilityDemo: React.FC = () => {
-  const [selectedObject, setSelectedObject] = useState<VisibleObject | null>(null);
-  const currentTime = new Date();
+type VisibleObject = {
+  id: number
+  name: string
+  type: string
+  visibility: string
+  direction: string
+  bestTime: string
+  description: string
+}
 
-  const handleObjectSelect = (object: VisibleObject) => {
-    setSelectedObject(object);
-  };
+export default function ObjectVisibilityDemo() {
+  const [objects, setObjects] = useState<VisibleObject[]>([])
+  const [currentTime, setCurrentTime] = useState("")
+  const [location, setLocation] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
-  const handleRefresh = () => {
-    window.location.reload();
-  };
+  const fetchVisibleObjects = async () => {
+    try {
+      setLoading(true)
+      setError("")
+
+      const response = await fetch("http://127.0.0.1:5000/api/object-visibility")
+      const data = await response.json()
+
+      if (data.success) {
+        setObjects(data.objects || [])
+        setCurrentTime(data.currentTime || "")
+        setLocation(data.location || "Melbourne Observatory")
+      } else {
+        setError("Failed to get visible objects")
+      }
+    } catch (err) {
+      console.error(err)
+      setError("Failed to get visible objects")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchVisibleObjects()
+  }, [])
 
   return (
-    <div className="min-h-screen bg-transparent py-8 relative z-10" style={{ pointerEvents: "all" }}>
+    <div className="min-h-screen bg-transparent py-8 relative z-10">
       <div className="max-w-7xl mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8"
-        >
-          <div className="flex items-center space-x-4">
-            <Link to="/" className="p-2 hover:bg-slate-800 rounded-lg transition-colors">
+
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Link to="/" className="p-2 hover:bg-slate-800 rounded-lg transition">
               <ArrowLeft className="h-6 w-6 text-slate-400" />
             </Link>
+
             <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Object Visibility</h1>
+              <h1 className="text-4xl font-bold text-white mb-2">
+                Object Visibility
+              </h1>
               <p className="text-slate-400">
-                See which celestial objects are visible right now from Melbourne Observatory
+                Visible objects are shown using current time and viewing conditions.
               </p>
             </div>
           </div>
 
-          <div className="hidden md:flex items-center space-x-2 text-slate-400">
+          <div className="hidden md:flex items-center gap-2 text-slate-400">
             <Telescope className="h-6 w-6" />
             <span className="text-sm">Melbourne Observatory</span>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 rounded-2xl border border-slate-700 bg-slate-900/70 backdrop-blur-md p-6 shadow-2xl"
-        >
+        <div className="mb-6 rounded-2xl border border-slate-700 bg-slate-900/70 backdrop-blur-md p-6 shadow-2xl">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="h-16 w-16 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center">
                 <Eye className="h-8 w-8 text-blue-300" />
               </div>
+
               <div>
-                <h2 className="text-2xl font-bold text-white">Currently Visible Right Now</h2>
+                <h2 className="text-2xl font-bold text-white">
+                  Currently Visible Right Now
+                </h2>
                 <p className="text-slate-400">
-                  Objects are shown according to current time and viewing conditions.
+                  Filtered according to current time and visibility conditions.
                 </p>
               </div>
             </div>
 
             <button
-              onClick={handleRefresh}
+              onClick={fetchVisibleObjects}
               className="flex items-center justify-center gap-2 rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-white hover:bg-slate-700 transition"
             >
               <RefreshCw className="h-4 w-4" />
@@ -83,8 +104,8 @@ const ObjectVisibilityDemo: React.FC = () => {
                 <MapPin className="h-4 w-4" />
                 Location
               </div>
-              <p className="text-white font-semibold">Melbourne, Australia</p>
-              <p className="text-slate-500 text-sm">Melbourne Observatory</p>
+              <p className="text-white font-semibold">{location}</p>
+              <p className="text-slate-500 text-sm">Melbourne, Australia</p>
             </div>
 
             <div className="rounded-xl bg-slate-800/70 border border-slate-700 p-4">
@@ -92,71 +113,89 @@ const ObjectVisibilityDemo: React.FC = () => {
                 <Clock className="h-4 w-4" />
                 Current Time
               </div>
-              <p className="text-white font-semibold">
-                {currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-              </p>
-              <p className="text-slate-500 text-sm">
-                {currentTime.toLocaleDateString()}
-              </p>
+              <p className="text-white font-semibold">{currentTime}</p>
+              <p className="text-slate-500 text-sm">Live backend time</p>
             </div>
 
             <div className="rounded-xl bg-emerald-900/30 border border-emerald-700/60 p-4">
-              <p className="text-emerald-300 text-sm mb-2">Visibility Status</p>
-              <p className="text-white font-semibold">Live Object Filtering</p>
-              <p className="text-slate-400 text-sm">Moon, Mars, Jupiter, Saturn, Orion Nebula</p>
+              <p className="text-emerald-300 text-sm mb-2">Visibility Filter</p>
+              <p className="text-white font-semibold">Weather + Time Based</p>
+              <p className="text-slate-400 text-sm">
+                Only currently visible objects are shown.
+              </p>
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        {selectedObject && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-blue-900/30 border border-blue-700 rounded-xl"
-          >
-            <h3 className="text-lg font-semibold text-blue-300 mb-2">Selected Object</h3>
-            <p className="text-white">
-              <strong>{selectedObject.name}</strong> - {selectedObject.type} in{" "}
-              {selectedObject.metadata.constellation}
+        <div className="rounded-2xl border border-slate-700 bg-slate-900/70 backdrop-blur-md p-6 shadow-2xl">
+          {loading && (
+            <p className="text-slate-400 text-center py-16">
+              Loading visible objects...
             </p>
-            <p className="text-slate-300 text-sm mt-1">
-              Elevation: {selectedObject.visibility.elevation.toFixed(1)}° | Visibility:{" "}
-              {selectedObject.visibility.isVisible ? "Visible" : "Not Visible"}
+          )}
+
+          {error && (
+            <p className="text-red-400 text-center py-16">
+              Error: {error}
             </p>
-          </motion.div>
-        )}
+          )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="rounded-2xl border border-slate-700 bg-slate-900/60 backdrop-blur-md p-4 shadow-xl"
-        >
-          <EnhancedObjectList
-            onObjectSelect={handleObjectSelect}
-            showFilters={true}
-            showDetailView={true}
-            maxItems={50}
-            className="w-full"
-          />
-        </motion.div>
+          {!loading && !error && objects.length === 0 && (
+            <p className="text-slate-400 text-center py-16">
+              No objects are currently visible.
+            </p>
+          )}
 
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="mt-8 p-6 bg-slate-900/60 backdrop-blur-sm border border-slate-700 rounded-xl"
-        >
-          <h3 className="text-lg font-semibold text-white mb-3">How it helps students</h3>
-          <p className="text-slate-400 text-sm leading-6">
-            This page tells students which celestial objects they can observe right now,
-            based on current time, location, and visibility status. It will later connect
-            directly to the backend API for live object visibility data.
-          </p>
-        </motion.div>
+          {!loading && !error && objects.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {objects.map((object) => (
+                <div
+                  key={object.id}
+                  className="rounded-2xl bg-slate-800/80 border border-slate-700 p-6 hover:border-blue-500/60 transition"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-2xl font-bold text-white">
+                      {object.name}
+                    </h3>
+
+                    <span className="px-3 py-1 rounded-full bg-blue-600/20 text-blue-300 text-sm">
+                      {object.type}
+                    </span>
+                  </div>
+
+                  <p className="text-slate-300 mb-4">
+                    {object.description}
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                    <div className="rounded-xl bg-slate-900/80 p-3">
+                      <p className="text-slate-500">Visibility</p>
+                      <p className="text-green-400 font-semibold">
+                        {object.visibility}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-900/80 p-3">
+                      <p className="text-slate-500">Direction</p>
+                      <p className="text-white font-semibold">
+                        {object.direction}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-slate-900/80 p-3">
+                      <p className="text-slate-500">Best Time</p>
+                      <p className="text-white font-semibold">
+                        {object.bestTime}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
-  );
-};
-
-export default ObjectVisibilityDemo;
+  )
+}
